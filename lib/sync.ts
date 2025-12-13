@@ -1,3 +1,4 @@
+import { Logger } from 'next-axiom'
 import { teamtailor } from './teamtailor/client'
 import { SyncError } from './errors'
 import type { ParsedFields, SyncResult } from '@/types'
@@ -41,13 +42,14 @@ function parseAnswerValue(value: string): AnswerValue {
 
 export async function syncCandidate(
   fields: ParsedFields,
-  jobId: string
+  jobId: string,
+  log: Logger
 ): Promise<SyncResult> {
   let candidateId: string | undefined
 
   try {
     // Step 1: Create/merge candidate
-    console.log('Creating candidate', { email: fields.candidate.email })
+    log.info('Creating candidate', { email: fields.candidate.email })
 
     const candidate = await teamtailor.createCandidate({
       firstName: fields.candidate.firstName || '',
@@ -58,22 +60,24 @@ export async function syncCandidate(
     })
 
     candidateId = candidate.id
-    console.log('Candidate created', { candidate_id: candidateId })
+    log.info('Candidate created', { candidate_id: candidateId })
 
     // Step 2: Create job application
-    console.log('Creating job application', { candidate_id: candidateId, job_id: jobId })
+    log.info('Creating job application', { candidate_id: candidateId, job_id: jobId })
 
     try {
       await teamtailor.createJobApplication(candidateId, jobId)
-      console.log('Job application created')
+      log.info('Job application created')
     } catch (error) {
       // Job application might already exist if candidate was merged
-      console.warn('Job application creation failed (may already exist)', { error })
+      log.warn('Job application creation failed (may already exist)', {
+        error: error instanceof Error ? error.message : error
+      })
     }
 
     // Step 3: Create answers
     for (const answer of fields.answers) {
-      console.log('Creating answer', {
+      log.info('Creating answer', {
         candidate_id: candidateId,
         question_id: answer.questionId,
       })
@@ -81,11 +85,11 @@ export async function syncCandidate(
       try {
         const answerValue = parseAnswerValue(answer.value)
         await teamtailor.createAnswer(candidateId, answer.questionId, answerValue)
-        console.log('Answer created', { question_id: answer.questionId })
+        log.info('Answer created', { question_id: answer.questionId })
       } catch (error) {
-        console.error('Failed to create answer', {
+        log.error('Failed to create answer', {
           question_id: answer.questionId,
-          error,
+          error: error instanceof Error ? error.message : error,
         })
         // Continue with other answers
       }
@@ -93,7 +97,7 @@ export async function syncCandidate(
 
     // Step 4: Create custom field values
     for (const customField of fields.customFields) {
-      console.log('Creating custom field value', {
+      log.info('Creating custom field value', {
         candidate_id: candidateId,
         api_name: customField.apiName,
       })
@@ -108,14 +112,14 @@ export async function syncCandidate(
             field.id,
             customField.value
           )
-          console.log('Custom field value created', { api_name: customField.apiName })
+          log.info('Custom field value created', { api_name: customField.apiName })
         } else {
-          console.warn('Custom field not found', { api_name: customField.apiName })
+          log.warn('Custom field not found', { api_name: customField.apiName })
         }
       } catch (error) {
-        console.error('Failed to create custom field value', {
+        log.error('Failed to create custom field value', {
           api_name: customField.apiName,
-          error,
+          error: error instanceof Error ? error.message : error,
         })
         // Continue with other custom fields
       }
@@ -123,13 +127,15 @@ export async function syncCandidate(
 
     // Step 5: Create note if provided
     if (fields.notes) {
-      console.log('Creating note', { candidate_id: candidateId })
+      log.info('Creating note', { candidate_id: candidateId })
 
       try {
         await teamtailor.createNote(candidateId, DEFAULT_NOTE_USER_ID, fields.notes)
-        console.log('Note created')
+        log.info('Note created')
       } catch (error) {
-        console.error('Failed to create note', { error })
+        log.error('Failed to create note', {
+          error: error instanceof Error ? error.message : error
+        })
         // Non-critical, continue
       }
     }
@@ -141,7 +147,7 @@ export async function syncCandidate(
   } catch (error) {
     const step = candidateId ? 'post_candidate' : 'create_candidate'
 
-    console.error('Sync failed', {
+    log.error('Sync failed', {
       step,
       email: fields.candidate.email,
       candidate_id: candidateId,
