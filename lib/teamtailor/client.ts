@@ -160,7 +160,7 @@ class TeamTailorClient {
       data: {
         type: 'notes',
         attributes: {
-          content,
+          note: content,
         },
         relationships: {
           candidate: { data: { type: 'candidates', id: candidateId } },
@@ -214,6 +214,10 @@ class TeamTailorClient {
     return (
       fields.find((f) => f.attributes['api-name'] === apiName) || null
     )
+  }
+
+  async deleteCandidate(candidateId: string): Promise<void> {
+    await this.request<void>('DELETE', `/candidates/${candidateId}`)
   }
 }
 
