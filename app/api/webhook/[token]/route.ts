@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Logger } from 'next-axiom'
 import { parseManyChatFields } from '@/lib/parse'
 import { syncCandidate } from '@/lib/sync'
+import { rateLimit } from '@/lib/rate-limit'
+
+// Helper for consistent error responses
+function errorResponse(
+  log: Logger,
+  message: string,
+  status: number,
+  details?: Record<string, unknown>
+) {
+  log.error(message, details)
+  log.flush()
+  return NextResponse.json({ error: message }, { status })
+}
 
 export async function POST(
   request: NextRequest,
@@ -12,44 +25,39 @@ export async function POST(
 
   // 1. Validate token
   if (token !== process.env.WEBHOOK_SECRET) {
-    log.error('Unauthorized webhook attempt', { token_received: token })
-    await log.flush()
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return errorResponse(log, 'Unauthorized', 401, { token_received: token })
   }
 
-  // 2. Extract job_id
+  // 2. Rate limit by IP
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown'
+  const { success: withinLimit, remaining } = rateLimit(ip)
+
+  if (!withinLimit) {
+    return errorResponse(log, 'Too many requests', 429, { ip })
+  }
+
+  // 3. Extract job_id
   const { searchParams } = new URL(request.url)
   const jobId = searchParams.get('job_id')
 
   if (!jobId) {
-    log.error('Missing job_id in webhook request')
-    await log.flush()
-    return NextResponse.json({ error: 'Missing job_id' }, { status: 400 })
+    return errorResponse(log, 'Missing job_id', 400)
   }
 
-  // 3. Parse body
+  // 4. Parse body
   let body: Record<string, string>
   try {
     body = await request.json()
   } catch {
-    log.error('Invalid JSON body')
-    await log.flush()
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    return errorResponse(log, 'Invalid JSON body', 400)
   }
 
-  // 4. Parse ManyChat fields
+  // 5. Parse ManyChat fields
   let fields
   try {
     fields = parseManyChatFields(body)
   } catch (error) {
-    log.error('Failed to parse fields', {
-      error: error instanceof Error ? error.message : error,
-    })
-    await log.flush()
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Invalid fields' },
-      { status: 400 }
-    )
+    return errorResponse(log, error instanceof Error ? error.message : 'Invalid fields', 400)
   }
 
   log.info('Webhook received', {
@@ -58,31 +66,24 @@ export async function POST(
     answer_count: fields.answers.length,
     custom_field_count: fields.customFields.length,
     has_notes: !!fields.notes,
+    rate_limit_remaining: remaining,
   })
 
-  // 5. Sync to TeamTailor
+  // 6. Sync to TeamTailor
   const result = await syncCandidate(fields, jobId, log)
 
-  // 6. Return result
+  // 7. Return result
+  await log.flush()
+
   if (result.success) {
-    log.info('Sync completed successfully', {
-      candidate_id: result.candidateId,
-      email: fields.candidate.email,
-    })
-    await log.flush()
     return NextResponse.json({
       success: true,
       candidate_id: result.candidateId,
     })
-  } else {
-    log.error('Sync failed', {
-      error: result.error,
-      email: fields.candidate.email,
-    })
-    await log.flush()
-    return NextResponse.json(
-      { success: false, error: result.error },
-      { status: 500 }
-    )
   }
+
+  return NextResponse.json(
+    { success: false, error: result.error },
+    { status: 500 }
+  )
 }
