@@ -63,3 +63,7 @@ npm run test     # Run unit tests
 ## Deployment
 
 Deploy to Vercel and set environment variables in the dashboard.
+
+## Documentation
+
+- [Testing](docs/TESTING.md)
