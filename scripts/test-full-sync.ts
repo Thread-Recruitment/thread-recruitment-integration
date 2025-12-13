@@ -1,14 +1,6 @@
-import { requireEnv, teamtailor, TEST_JOB_ID } from './lib'
+import { requireEnv, getClient, TEST_JOB_ID } from './lib'
 import { parseManyChatFields } from '../lib/parse'
 import { syncCandidate } from '../lib/sync'
-
-// Mock logger for testing
-const mockLogger = {
-  info: (msg: string, data?: object) => console.log(`  [INFO] ${msg}`, data || ''),
-  warn: (msg: string, data?: object) => console.log(`  [WARN] ${msg}`, data || ''),
-  error: (msg: string, data?: object) => console.log(`  [ERROR] ${msg}`, data || ''),
-  flush: async () => {},
-}
 
 // Test payload simulating ManyChat webhook
 const TEST_PAYLOAD = {
@@ -18,13 +10,12 @@ const TEST_PAYLOAD = {
   tt_phone: '+64211234567',
   tt_tags: 'test,delete-me',
   tt_notes: 'This is an automated integration test. Safe to delete.',
-  // Add answer fields if you have question IDs:
-  // tt_answer_12345: 'Yes',
 }
 
 async function main() {
   requireEnv()
 
+  const teamtailor = getClient()
   let candidateId: string | null = null
 
   try {
@@ -33,37 +24,36 @@ async function main() {
     // Step 1: Parse fields
     console.log('1. Parsing ManyChat fields...')
     const fields = parseManyChatFields(TEST_PAYLOAD)
-    console.log(`   ✓ Parsed: ${fields.candidate.email}`)
+    console.log(`   Parsed: ${fields.candidate.email}`)
 
     // Step 2: Run sync
     console.log(`\n2. Syncing to TeamTailor (job_id: ${TEST_JOB_ID})...\n`)
-    // @ts-expect-error - using mock logger
-    const result = await syncCandidate(fields, TEST_JOB_ID, mockLogger)
+    const result = await syncCandidate(fields, TEST_JOB_ID)
 
     if (!result.success) {
       throw new Error(`Sync failed: ${result.error}`)
     }
 
     candidateId = result.candidateId!
-    console.log(`\n   ✓ Sync completed! Candidate ID: ${candidateId}`)
+    console.log(`\n   Sync completed! Candidate ID: ${candidateId}`)
 
     // Step 3: Cleanup
     console.log('\n3. Cleaning up...')
     await teamtailor.deleteCandidate(candidateId)
-    console.log('   ✓ Test candidate deleted')
+    console.log('   Test candidate deleted')
 
-    console.log('\n✅ Full sync test passed!\n')
+    console.log('\nFull sync test passed!\n')
   } catch (error) {
-    console.error('\n❌ Test failed:', error)
+    console.error('\nTest failed:', error)
 
     // Attempt cleanup
     if (candidateId) {
       console.log('\nAttempting cleanup...')
       try {
         await teamtailor.deleteCandidate(candidateId)
-        console.log('✓ Cleanup successful')
+        console.log('Cleanup successful')
       } catch {
-        console.error('❌ Cleanup failed - manual deletion required for candidate:', candidateId)
+        console.error('Cleanup failed - manual deletion required for candidate:', candidateId)
       }
     }
 

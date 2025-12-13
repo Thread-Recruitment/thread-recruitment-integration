@@ -1,15 +1,24 @@
-import 'dotenv/config'
+import { config } from 'dotenv'
+config({ path: '.env.local' })
 
-// Re-export the client for scripts
-export { teamtailor } from '../lib/teamtailor/client'
+import { TeamTailorClient } from '../lib/teamtailor/client'
+
+// Lazy client initialization after env is loaded
+let _client: TeamTailorClient | null = null
+export function getClient(): TeamTailorClient {
+  if (!_client) {
+    _client = new TeamTailorClient(process.env.TEAMTAILOR_API_KEY || '')
+  }
+  return _client
+}
 
 // Validate environment
 export function requireEnv() {
   if (!process.env.TEAMTAILOR_API_KEY) {
-    console.error('❌ Missing TEAMTAILOR_API_KEY in .env.local')
+    console.error('Missing TEAMTAILOR_API_KEY in .env.local')
     process.exit(1)
   }
-  console.log('✓ Environment loaded')
+  console.log('Environment loaded')
 }
 
 // Test configuration - edit these values

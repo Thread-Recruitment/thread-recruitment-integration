@@ -14,7 +14,7 @@ import type {
   ApiListResponse,
 } from './types'
 
-class TeamTailorClient {
+export class TeamTailorClient {
   private baseUrl = 'https://api.teamtailor.com/v1'
   private headers: HeadersInit
 

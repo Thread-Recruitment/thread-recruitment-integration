@@ -1,8 +1,9 @@
-import { requireEnv, teamtailor, TEST_CANDIDATE } from './lib'
+import { requireEnv, getClient, TEST_CANDIDATE } from './lib'
 
 async function main() {
   requireEnv()
 
+  const teamtailor = getClient()
   let candidateId: string | null = null
 
   try {
@@ -13,7 +14,7 @@ async function main() {
     const candidate = await teamtailor.createCandidate(TEST_CANDIDATE)
     candidateId = candidate.id
 
-    console.log(`\n✓ Candidate created:`)
+    console.log(`\nCandidate created:`)
     console.log(`  ID: ${candidateId}`)
     console.log(`  Name: ${candidate.attributes['first-name']} ${candidate.attributes['last-name']}`)
 
@@ -21,19 +22,19 @@ async function main() {
     console.log('\nDeleting test candidate...')
     await teamtailor.deleteCandidate(candidateId)
 
-    console.log('\n✓ Candidate deleted successfully')
-    console.log('\n✅ CRUD test passed!')
+    console.log('\nCandidate deleted successfully')
+    console.log('\nCRUD test passed!')
   } catch (error) {
-    console.error('\n❌ Test failed:', error)
+    console.error('\nTest failed:', error)
 
     // Attempt cleanup if we created a candidate
     if (candidateId) {
       console.log('\nAttempting cleanup...')
       try {
         await teamtailor.deleteCandidate(candidateId)
-        console.log('✓ Cleanup successful')
+        console.log('Cleanup successful')
       } catch {
-        console.error('❌ Cleanup failed - manual deletion required for candidate:', candidateId)
+        console.error('Cleanup failed - manual deletion required for candidate:', candidateId)
       }
     }
 
