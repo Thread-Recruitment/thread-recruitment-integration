@@ -19,11 +19,13 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
+  // Generate request ID for tracing
+  const requestId = request.headers.get('x-request-id') || crypto.randomUUID()
   const { token } = await params
 
   // 1. Validate token
   if (token !== process.env.WEBHOOK_SECRET) {
-    return errorResponse('Unauthorized', 401, { token_received: token })
+    return errorResponse('Unauthorized', 401, { request_id: requestId, token_received: token })
   }
 
   // 2. Rate limit by IP
@@ -31,7 +33,7 @@ export async function POST(
   const { success: withinLimit, remaining } = rateLimit(ip)
 
   if (!withinLimit) {
-    return errorResponse('Too many requests', 429, { ip })
+    return errorResponse('Too many requests', 429, { request_id: requestId, ip })
   }
 
   // 3. Extract job_id
@@ -39,7 +41,7 @@ export async function POST(
   const jobId = searchParams.get('job_id')
 
   if (!jobId) {
-    return errorResponse('Missing job_id', 400)
+    return errorResponse('Missing job_id', 400, { request_id: requestId })
   }
 
   // 4. Parse body
@@ -47,7 +49,7 @@ export async function POST(
   try {
     body = await request.json()
   } catch {
-    return errorResponse('Invalid JSON body', 400)
+    return errorResponse('Invalid JSON body', 400, { request_id: requestId })
   }
 
   // 5. Parse ManyChat fields
@@ -55,10 +57,11 @@ export async function POST(
   try {
     fields = parseManyChatFields(body)
   } catch (error) {
-    return errorResponse(error instanceof Error ? error.message : 'Invalid fields', 400)
+    return errorResponse(error instanceof Error ? error.message : 'Invalid fields', 400, { request_id: requestId })
   }
 
   log.info('Webhook received', {
+    request_id: requestId,
     job_id: jobId,
     email: fields.candidate.email,
     answer_count: fields.answers.length,
@@ -74,14 +77,17 @@ export async function POST(
   await log.flush()
 
   if (result.success) {
+    log.info('Sync completed', { request_id: requestId, candidate_id: result.candidateId })
     return NextResponse.json({
       success: true,
       candidate_id: result.candidateId,
+      request_id: requestId,
     })
   }
 
+  log.error('Sync failed', { request_id: requestId, error: result.error })
   return NextResponse.json(
-    { success: false, error: result.error },
+    { success: false, error: result.error, request_id: requestId },
     { status: 500 }
   )
 }
