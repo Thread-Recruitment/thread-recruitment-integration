@@ -194,19 +194,33 @@ export class TeamTailorClient {
   }
 
   async getQuestions(): Promise<Question[]> {
-    const response = await this.request<ApiListResponse<Question>>(
-      'GET',
-      '/questions'
-    )
-    return response.data
+    return this.fetchAllPages<Question>('/questions')
   }
 
   async getCustomFields(): Promise<CustomField[]> {
-    const response = await this.request<ApiListResponse<CustomField>>(
-      'GET',
-      '/custom-fields'
-    )
-    return response.data
+    return this.fetchAllPages<CustomField>('/custom-fields')
+  }
+
+  private async fetchAllPages<T>(path: string): Promise<T[]> {
+    const results: T[] = []
+    let url: string | null = `${this.baseUrl}${path}?page[size]=30`
+
+    while (url) {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.headers,
+      })
+
+      if (!response.ok) {
+        throw new Error(`TeamTailor API error: ${response.status}`)
+      }
+
+      const data: ApiListResponse<T> = await response.json()
+      results.push(...data.data)
+      url = data.links?.next || null
+    }
+
+    return results
   }
 
   async getCustomFieldByApiName(apiName: string): Promise<CustomField | null> {
