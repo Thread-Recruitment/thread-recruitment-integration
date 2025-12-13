@@ -1,6 +1,7 @@
 import { requireEnv, getClient, TEST_JOB_ID } from './lib'
 import { parseManyChatFields } from '../lib/parse'
 import { syncCandidate } from '../lib/sync'
+import { formatSyncReportText } from '../lib/report'
 
 // Test payload simulating ManyChat webhook
 const TEST_PAYLOAD = {
@@ -28,14 +29,19 @@ async function main() {
 
     // Step 2: Run sync
     console.log(`\n2. Syncing to TeamTailor (job_id: ${TEST_JOB_ID})...\n`)
-    const result = await syncCandidate(fields, TEST_JOB_ID)
+    const report = await syncCandidate(fields, TEST_JOB_ID)
 
-    if (!result.success) {
-      throw new Error(`Sync failed: ${result.error}`)
+    // Display report
+    console.log('--- Sync Report ---')
+    console.log(formatSyncReportText(report))
+    console.log('-------------------\n')
+
+    if (!report.success) {
+      throw new Error(`Sync failed: ${report.error}`)
     }
 
-    candidateId = result.candidateId!
-    console.log(`\n   Sync completed! Candidate ID: ${candidateId}`)
+    candidateId = report.candidateId!
+    console.log(`Sync completed! Candidate ID: ${candidateId}`)
 
     // Step 3: Cleanup
     console.log('\n3. Cleaning up...')

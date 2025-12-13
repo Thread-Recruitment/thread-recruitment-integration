@@ -3,6 +3,7 @@ import { log } from '@/lib/logger'
 import { parseManyChatFields } from '@/lib/parse'
 import { syncCandidate } from '@/lib/sync'
 import { rateLimit } from '@/lib/rate-limit'
+import { formatSyncReportText, formatSyncReportJson } from '@/lib/report'
 
 // Helper for consistent error responses
 function errorResponse(
@@ -71,23 +72,33 @@ export async function POST(
   })
 
   // 6. Sync to TeamTailor
-  const result = await syncCandidate(fields, jobId)
+  const report = await syncCandidate(fields, jobId)
 
-  // 7. Return result
+  // 7. Log sync report
+  const reportJson = formatSyncReportJson(report)
+  log.info('Sync report', {
+    request_id: requestId,
+    report: reportJson,
+  })
+
+  // Log text report for readability
+  const reportText = formatSyncReportText(report)
+  console.log(`\n--- Sync Report [${requestId}] ---\n${reportText}\n---\n`)
+
+  // 8. Return result
   await log.flush()
 
-  if (result.success) {
-    log.info('Sync completed', { request_id: requestId, candidate_id: result.candidateId })
+  if (report.success) {
     return NextResponse.json({
       success: true,
-      candidate_id: result.candidateId,
+      candidate_id: report.candidateId,
       request_id: requestId,
+      report: reportJson,
     })
   }
 
-  log.error('Sync failed', { request_id: requestId, error: result.error })
   return NextResponse.json(
-    { success: false, error: result.error, request_id: requestId },
+    { success: false, error: report.error, request_id: requestId, report: reportJson },
     { status: 500 }
   )
 }

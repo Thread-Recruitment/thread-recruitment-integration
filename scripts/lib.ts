@@ -21,8 +21,8 @@ export function requireEnv() {
   console.log('Environment loaded')
 }
 
-// Test configuration - edit these values
-export const TEST_JOB_ID = '123456' // Replace with a real job ID from your TeamTailor
+// Test configuration
+export const TEST_JOB_ID = '6913207' // Australia 2026 Wildfire Season Strike Team
 
 // Test candidate data
 export const TEST_CANDIDATE = {

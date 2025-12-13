@@ -1,7 +1,7 @@
 import { log } from './logger'
 import { teamtailor } from './teamtailor/client'
 import { SyncError } from './errors'
-import type { ParsedFields, SyncResult } from '@/types'
+import type { ParsedFields, SyncReport, FieldResult, FieldStatus } from '@/types'
 import type { AnswerValue } from './teamtailor/types'
 
 // Default user ID for notes - should be configured per deployment
@@ -43,8 +43,17 @@ export function parseAnswerValue(value: string): AnswerValue {
 export async function syncCandidate(
   fields: ParsedFields,
   jobId: string
-): Promise<SyncResult> {
-  let candidateId: string | undefined
+): Promise<SyncReport> {
+  const report: SyncReport = {
+    success: false,
+    email: fields.candidate.email,
+    jobId,
+    candidate: 'failed',
+    jobApplication: 'skipped',
+    answers: [],
+    customFields: [],
+    notes: fields.notes ? 'skipped' : null,
+  }
 
   try {
     // Step 1: Create/merge candidate
@@ -58,17 +67,20 @@ export async function syncCandidate(
       tags: fields.candidate.tags,
     })
 
-    candidateId = candidate.id
-    log.info('Candidate created', { candidate_id: candidateId })
+    report.candidateId = candidate.id
+    report.candidate = 'success'
+    log.info('Candidate created', { candidate_id: report.candidateId })
 
     // Step 2: Create job application
-    log.info('Creating job application', { candidate_id: candidateId, job_id: jobId })
+    log.info('Creating job application', { candidate_id: report.candidateId, job_id: jobId })
 
     try {
-      await teamtailor.createJobApplication(candidateId, jobId)
+      await teamtailor.createJobApplication(report.candidateId, jobId)
+      report.jobApplication = 'success'
       log.info('Job application created')
     } catch (error) {
       // Job application might already exist if candidate was merged
+      report.jobApplication = 'failed'
       log.warn('Job application creation failed (may already exist)', {
         error: error instanceof Error ? error.message : error
       })
@@ -77,29 +89,45 @@ export async function syncCandidate(
     // Step 3: Create answers
     for (const answer of fields.answers) {
       log.info('Creating answer', {
-        candidate_id: candidateId,
+        candidate_id: report.candidateId,
         question_id: answer.questionId,
       })
 
+      const result: FieldResult = {
+        field: answer.questionId,
+        value: answer.value,
+        status: 'failed',
+      }
+
       try {
         const answerValue = parseAnswerValue(answer.value)
-        await teamtailor.createAnswer(candidateId, answer.questionId, answerValue)
+        await teamtailor.createAnswer(report.candidateId, answer.questionId, answerValue)
+        result.status = 'success'
         log.info('Answer created', { question_id: answer.questionId })
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error)
+        result.error = errorMsg
         log.error('Failed to create answer', {
           question_id: answer.questionId,
-          error: error instanceof Error ? error.message : error,
+          error: errorMsg,
         })
-        // Continue with other answers
       }
+
+      report.answers.push(result)
     }
 
     // Step 4: Create custom field values
     for (const customField of fields.customFields) {
       log.info('Creating custom field value', {
-        candidate_id: candidateId,
+        candidate_id: report.candidateId,
         api_name: customField.apiName,
       })
+
+      const result: FieldResult = {
+        field: customField.apiName,
+        value: customField.value,
+        status: 'failed',
+      }
 
       try {
         // Look up the custom field ID by api-name
@@ -107,64 +135,59 @@ export async function syncCandidate(
 
         if (field) {
           await teamtailor.createCustomFieldValue(
-            candidateId,
+            report.candidateId,
             field.id,
             customField.value
           )
+          result.status = 'success'
           log.info('Custom field value created', { api_name: customField.apiName })
         } else {
+          result.status = 'not_found'
+          result.error = 'Custom field not found'
           log.warn('Custom field not found', { api_name: customField.apiName })
         }
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error)
+        result.error = errorMsg
         log.error('Failed to create custom field value', {
           api_name: customField.apiName,
-          error: error instanceof Error ? error.message : error,
+          error: errorMsg,
         })
-        // Continue with other custom fields
       }
+
+      report.customFields.push(result)
     }
 
     // Step 5: Create note if provided
     if (fields.notes) {
-      log.info('Creating note', { candidate_id: candidateId })
+      log.info('Creating note', { candidate_id: report.candidateId })
 
       try {
-        await teamtailor.createNote(candidateId, DEFAULT_NOTE_USER_ID, fields.notes)
+        await teamtailor.createNote(report.candidateId, DEFAULT_NOTE_USER_ID, fields.notes)
+        report.notes = 'success'
         log.info('Note created')
       } catch (error) {
+        report.notes = 'failed'
         log.error('Failed to create note', {
           error: error instanceof Error ? error.message : error
         })
-        // Non-critical, continue
       }
     }
 
-    return {
-      success: true,
-      candidateId,
-    }
+    report.success = true
+    return report
   } catch (error) {
-    const step = candidateId ? 'post_candidate' : 'create_candidate'
+    const step = report.candidateId ? 'post_candidate' : 'create_candidate'
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error'
 
     log.error('Sync failed', {
       step,
       email: fields.candidate.email,
-      candidate_id: candidateId,
-      error: error instanceof Error ? error.message : error,
+      candidate_id: report.candidateId,
+      error: errorMsg,
     })
 
-    if (error instanceof SyncError) {
-      return {
-        success: false,
-        candidateId,
-        error: error.message,
-      }
-    }
-
-    return {
-      success: false,
-      candidateId,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }
+    report.error = errorMsg
+    return report
   }
 }

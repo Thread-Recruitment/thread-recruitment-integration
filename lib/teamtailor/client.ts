@@ -235,10 +235,18 @@ export class TeamTailorClient {
   }
 }
 
-// Single instance export
-const apiKey = process.env.TEAMTAILOR_API_KEY
-if (!apiKey) {
-  console.warn('TEAMTAILOR_API_KEY not set - API calls will fail')
-}
+// Lazy singleton - reads env at first use, not at import time
+let _instance: TeamTailorClient | null = null
 
-export const teamtailor = new TeamTailorClient(apiKey || '')
+export const teamtailor = new Proxy({} as TeamTailorClient, {
+  get(_, prop) {
+    if (!_instance) {
+      const apiKey = process.env.TEAMTAILOR_API_KEY
+      if (!apiKey) {
+        console.warn('TEAMTAILOR_API_KEY not set - API calls will fail')
+      }
+      _instance = new TeamTailorClient(apiKey || '')
+    }
+    return (_instance as unknown as Record<string, unknown>)[prop as string]
+  },
+})

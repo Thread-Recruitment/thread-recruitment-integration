@@ -13,9 +13,28 @@ export interface ParsedFields {
   notes?: string
 }
 
-export interface SyncResult {
+export type FieldStatus = 'success' | 'failed' | 'skipped' | 'not_found'
+
+export interface FieldResult {
+  field: string
+  value: string
+  status: FieldStatus
+  error?: string
+}
+
+export interface SyncReport {
   success: boolean
   candidateId?: string
+  email: string
+  jobId: string
+
+  candidate: FieldStatus
+  jobApplication: FieldStatus
+
+  answers: FieldResult[]
+  customFields: FieldResult[]
+  notes: FieldStatus | null
+
   error?: string
 }
 
