@@ -18,10 +18,18 @@ Tags are comma-separated: `"ManyChat,Summer2025,Auckland"`
 
 Format: `tt_answer_{questionId}`
 
+To find question IDs, run:
+```bash
+npx tsx scripts/test-get-questions.ts
+```
+
+To verify your setup is correct, look for:
+- **"Do you have permanent work rights?"** - ID **3165763**
+
 Example:
 ```json
 {
-  "tt_answer_12345": "Yes",
+  "tt_answer_3165763": "Yes",
   "tt_answer_12346": "Auckland",
   "tt_answer_12347": "3"
 }
