@@ -1,4 +1,4 @@
-import { Logger } from 'next-axiom'
+import { log } from './logger'
 import { teamtailor } from './teamtailor/client'
 import { SyncError } from './errors'
 import type { ParsedFields, SyncResult } from '@/types'
@@ -7,7 +7,7 @@ import type { AnswerValue } from './teamtailor/types'
 // Default user ID for notes - should be configured per deployment
 const DEFAULT_NOTE_USER_ID = process.env.TEAMTAILOR_NOTE_USER_ID || '1'
 
-function parseAnswerValue(value: string): AnswerValue {
+export function parseAnswerValue(value: string): AnswerValue {
   // Try to detect the answer type from the value
   const lowerValue = value.toLowerCase()
 
@@ -42,8 +42,7 @@ function parseAnswerValue(value: string): AnswerValue {
 
 export async function syncCandidate(
   fields: ParsedFields,
-  jobId: string,
-  log: Logger
+  jobId: string
 ): Promise<SyncResult> {
   let candidateId: string | undefined
 

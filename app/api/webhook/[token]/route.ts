@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Logger } from 'next-axiom'
+import { log } from '@/lib/logger'
 import { parseManyChatFields } from '@/lib/parse'
 import { syncCandidate } from '@/lib/sync'
 import { rateLimit } from '@/lib/rate-limit'
 
 // Helper for consistent error responses
 function errorResponse(
-  log: Logger,
   message: string,
   status: number,
   details?: Record<string, unknown>
@@ -20,12 +19,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
-  const log = new Logger()
   const { token } = await params
 
   // 1. Validate token
   if (token !== process.env.WEBHOOK_SECRET) {
-    return errorResponse(log, 'Unauthorized', 401, { token_received: token })
+    return errorResponse('Unauthorized', 401, { token_received: token })
   }
 
   // 2. Rate limit by IP
@@ -33,7 +31,7 @@ export async function POST(
   const { success: withinLimit, remaining } = rateLimit(ip)
 
   if (!withinLimit) {
-    return errorResponse(log, 'Too many requests', 429, { ip })
+    return errorResponse('Too many requests', 429, { ip })
   }
 
   // 3. Extract job_id
@@ -41,7 +39,7 @@ export async function POST(
   const jobId = searchParams.get('job_id')
 
   if (!jobId) {
-    return errorResponse(log, 'Missing job_id', 400)
+    return errorResponse('Missing job_id', 400)
   }
 
   // 4. Parse body
@@ -49,7 +47,7 @@ export async function POST(
   try {
     body = await request.json()
   } catch {
-    return errorResponse(log, 'Invalid JSON body', 400)
+    return errorResponse('Invalid JSON body', 400)
   }
 
   // 5. Parse ManyChat fields
@@ -57,7 +55,7 @@ export async function POST(
   try {
     fields = parseManyChatFields(body)
   } catch (error) {
-    return errorResponse(log, error instanceof Error ? error.message : 'Invalid fields', 400)
+    return errorResponse(error instanceof Error ? error.message : 'Invalid fields', 400)
   }
 
   log.info('Webhook received', {
@@ -70,7 +68,7 @@ export async function POST(
   })
 
   // 6. Sync to TeamTailor
-  const result = await syncCandidate(fields, jobId, log)
+  const result = await syncCandidate(fields, jobId)
 
   // 7. Return result
   await log.flush()
