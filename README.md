@@ -66,4 +66,8 @@ Deploy to Vercel and set environment variables in the dashboard.
 
 ## Documentation
 
+- [Webhook](docs/WEBHOOK.md)
+- [Field Mapping](docs/FIELD-MAPPING.md)
+- [TeamTailor API](docs/TEAMTAILOR-API.md)
+- [ManyChat Setup](docs/MANYCHAT-SETUP.md)
 - [Testing](docs/TESTING.md)
