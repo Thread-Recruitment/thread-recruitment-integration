@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Thread Recruitment Integration
 
-## Getting Started
+Webhook service that receives candidate data from ManyChat and syncs to TeamTailor.
 
-First, run the development server:
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local
+# Edit .env.local with your API keys
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+|----------|-------------|
+| `TEAMTAILOR_API_KEY` | TeamTailor API key |
+| `WEBHOOK_SECRET` | Secret token for webhook URL |
+| `TEAMTAILOR_NOTE_USER_ID` | User ID for notes (optional, defaults to "1") |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Webhook Endpoint
 
-## Learn More
+```
+POST /api/webhook/[token]?job_id=12345
+```
 
-To learn more about Next.js, take a look at the following resources:
+ManyChat sends JSON with `tt_` prefixed fields:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```json
+{
+  "tt_first_name": "John",
+  "tt_last_name": "Doe",
+  "tt_email": "john@example.com",
+  "tt_phone": "+64211234567",
+  "tt_answer_98765": "Yes",
+  "tt_custom_source": "Instagram",
+  "tt_notes": "Screening summary",
+  "tt_tags": "ManyChat,Summer2025"
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Field Mapping
 
-## Deploy on Vercel
+| ManyChat Field | TeamTailor Destination |
+|----------------|----------------------|
+| `tt_first_name` | Candidate first name |
+| `tt_last_name` | Candidate last name |
+| `tt_email` | Candidate email |
+| `tt_phone` | Candidate phone |
+| `tt_tags` | Candidate tags (comma-separated) |
+| `tt_answer_{id}` | Answer to question ID |
+| `tt_custom_{api-name}` | Custom field value |
+| `tt_notes` | Note on candidate |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Development
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev      # Start dev server
+npm run build    # Build for production
+npm run test     # Run unit tests
+```
+
+## Deployment
+
+Deploy to Vercel and set environment variables in the dashboard.
