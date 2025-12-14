@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-zinc-950">
@@ -21,6 +23,13 @@ export default function Home() {
             POST /api/webhook/[token]?job_id=123
           </code>
         </div>
+
+        <Link
+          href="/docs"
+          className="rounded-lg bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          View Integration Guide
+        </Link>
 
         <div className="text-sm text-zinc-500 dark:text-zinc-500">
           Status: Operational
