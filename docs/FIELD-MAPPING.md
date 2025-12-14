@@ -35,11 +35,7 @@ Example:
 }
 ```
 
-Answer values are automatically detected:
-- `"yes"`, `"true"` -> Boolean true
-- `"no"`, `"false"` -> Boolean false
-- `"1,2,3"` -> Multiple choice IDs
-- Other -> Text
+Answer values are automatically converted based on the TeamTailor question type. See [Type Conversion](#type-conversion) for details.
 
 ## Custom Field Values
 
@@ -55,6 +51,8 @@ Example:
 }
 ```
 
+> **Tip:** When creating custom fields in ManyChat, use the **Description** field to document what question this field represents. This helps admins understand the mapping when reviewing the flow later.
+
 ## Notes
 
 `tt_notes` creates a note on the candidate profile. Supports markdown.
@@ -64,3 +62,54 @@ Example:
   "tt_notes": "**Summary**\n- Passed screening\n- Available immediately"
 }
 ```
+
+## Type Conversion
+
+The integration automatically converts values from ManyChat to the format TeamTailor expects. You can use any ManyChat field type (Text, Number, Date, Boolean, Array) - the integration normalizes everything and converts based on the target field type in TeamTailor.
+
+### ManyChat Input Types
+
+| ManyChat Type | How It's Normalized |
+|---------------|---------------------|
+| Text | Passed as-is |
+| Number | Converted to string (`123` → `"123"`) |
+| Date / DateTime | Passed as-is (ISO format) |
+| True/False | Converted to `"true"` / `"false"` |
+| Array | Joined with commas (`["a","b"]` → `"a,b"`) |
+
+### TeamTailor Question Types
+
+| TT Question Type | Input Examples | Conversion |
+|------------------|----------------|------------|
+| Text | `"Auckland"` | Passed as text |
+| Boolean | `"yes"`, `"true"`, `"1"`, `"on"` | Converted to `true`; anything else is `false` |
+| Number | `"5"`, `"3.5"` | Parsed as number; falls back to text if invalid |
+| Video | `"https://..."` | Passed as text (URL) |
+| Choice | `"42"` or `"1,2,3"` | Parsed as choice ID(s) |
+
+### TeamTailor Custom Field Types
+
+| TT Field Type | Input Examples | Conversion |
+|---------------|----------------|------------|
+| Text | `"Auckland"` | Passed as-is |
+| URL | `"https://..."` | Passed as-is |
+| Checkbox | `"yes"`, `"true"`, `"1"` | Converted to `"true"`; anything else is `"false"` |
+| Number | `"42"`, `"3.14"` | Parsed as number string |
+| Date | `"2024-01-15"` | Passed as-is (use ISO format) |
+| Select / MultiSelect | `"option_id"` | Passed as-is |
+
+### Best Practices
+
+1. **Use Text fields in ManyChat** when in doubt - they work with any TeamTailor type
+2. **For Boolean questions**, any of these values work: `yes`, `true`, `1`, `on` (case-insensitive)
+3. **For Number questions**, ensure the ManyChat field contains a valid number
+4. **For Choice questions**, use the choice ID from TeamTailor (run `npx tsx scripts/test-get-questions.ts` to see choice IDs)
+
+### Error Handling
+
+If a value can't be converted (e.g., `"banana"` for a Number field), the integration will:
+- Log a warning
+- Fall back to sending the raw value as text
+- Continue processing other fields
+
+This ensures partial data is still synced even if some fields have conversion issues.

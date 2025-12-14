@@ -2,13 +2,65 @@ import { log } from './logger'
 import { teamtailor } from './teamtailor/client'
 import { SyncError } from './errors'
 import type { ParsedFields, SyncReport, FieldResult, FieldStatus } from '@/types'
-import type { AnswerValue } from './teamtailor/types'
+import type { AnswerValue, QuestionType, CustomFieldType } from './teamtailor/types'
 
 // Default user ID for notes - should be configured per deployment
 const DEFAULT_NOTE_USER_ID = process.env.TEAMTAILOR_NOTE_USER_ID || '1'
 
+/**
+ * Convert a string value to boolean based on common truthy values
+ */
+function parseBoolean(value: string): boolean {
+  const lower = value.toLowerCase().trim()
+  return ['yes', 'true', '1', 'on'].includes(lower)
+}
+
+/**
+ * Convert a string value to AnswerValue based on the question type from TeamTailor
+ */
+export function convertAnswerValue(value: string, questionType: QuestionType): AnswerValue {
+  switch (questionType) {
+    case 'Boolean':
+      return { boolean: parseBoolean(value) }
+
+    case 'Number':
+    case 'Range': {
+      const num = parseFloat(value)
+      if (!isNaN(num)) {
+        return { range: num }
+      }
+      // Fallback to text if not a valid number
+      log.warn('Could not parse number for Range question, using text', { value })
+      return { text: value }
+    }
+
+    case 'Choice': {
+      // Choice expects array of choice IDs (numbers)
+      if (/^\d+(,\d+)*$/.test(value.trim())) {
+        const choices = value.split(',').map((n) => parseInt(n.trim(), 10))
+        return { choices }
+      }
+      // Single number could be a choice ID
+      const singleChoice = parseInt(value, 10)
+      if (!isNaN(singleChoice)) {
+        return { choices: [singleChoice] }
+      }
+      // Fallback to text
+      return { text: value }
+    }
+
+    case 'Text':
+    case 'Video':
+    default:
+      return { text: value }
+  }
+}
+
+/**
+ * Legacy function for backward compatibility - guesses type from value
+ * @deprecated Use convertAnswerValue with question type instead
+ */
 export function parseAnswerValue(value: string): AnswerValue {
-  // Try to detect the answer type from the value
   const lowerValue = value.toLowerCase()
 
   // Boolean detection
@@ -23,21 +75,36 @@ export function parseAnswerValue(value: string): AnswerValue {
   if (/^\d+(,\d+)*$/.test(value)) {
     const choices = value.split(',').map((n) => parseInt(n.trim(), 10))
     if (choices.length === 1) {
-      // Could be range or single choice - default to text for safety
       return { text: value }
     }
     return { choices }
   }
 
-  // Range detection (single number that looks like a rating)
-  const numValue = parseInt(value, 10)
-  if (!isNaN(numValue) && numValue >= 1 && numValue <= 10 && value === String(numValue)) {
-    // Ambiguous - could be range or text. Default to text for safety
-    return { text: value }
-  }
-
   // Default to text
   return { text: value }
+}
+
+/**
+ * Convert a string value to the appropriate format for a custom field
+ */
+export function convertCustomFieldValue(value: string, fieldType: CustomFieldType): string {
+  switch (fieldType) {
+    case 'CustomField::Checkbox':
+      return parseBoolean(value) ? 'true' : 'false'
+
+    case 'CustomField::Number': {
+      const num = parseFloat(value)
+      return isNaN(num) ? value : String(num)
+    }
+
+    case 'CustomField::Text':
+    case 'CustomField::Url':
+    case 'CustomField::Date':
+    case 'CustomField::Select':
+    case 'CustomField::MultiSelect':
+    default:
+      return value
+  }
 }
 
 export async function syncCandidate(
@@ -100,7 +167,23 @@ export async function syncCandidate(
       }
 
       try {
-        const answerValue = parseAnswerValue(answer.value)
+        // Fetch question to get its type for proper conversion
+        const question = await teamtailor.getQuestionById(answer.questionId)
+
+        let answerValue: AnswerValue
+        if (question) {
+          answerValue = convertAnswerValue(answer.value, question.attributes['question-type'])
+          log.info('Converting answer', {
+            question_id: answer.questionId,
+            question_type: question.attributes['question-type'],
+            raw_value: answer.value,
+          })
+        } else {
+          // Fallback to legacy parsing if question not found
+          answerValue = parseAnswerValue(answer.value)
+          log.warn('Question not found, using legacy parsing', { question_id: answer.questionId })
+        }
+
         await teamtailor.createAnswer(report.candidateId, answer.questionId, answerValue)
         result.status = 'success'
         log.info('Answer created', { question_id: answer.questionId })
@@ -134,10 +217,22 @@ export async function syncCandidate(
         const field = await teamtailor.getCustomFieldByApiName(customField.apiName)
 
         if (field) {
+          // Convert value based on field type
+          const convertedValue = convertCustomFieldValue(
+            customField.value,
+            field.attributes['field-type']
+          )
+          log.info('Converting custom field', {
+            api_name: customField.apiName,
+            field_type: field.attributes['field-type'],
+            raw_value: customField.value,
+            converted_value: convertedValue,
+          })
+
           await teamtailor.createCustomFieldValue(
             report.candidateId,
             field.id,
-            customField.value
+            convertedValue
           )
           result.status = 'success'
           log.info('Custom field value created', { api_name: customField.apiName })

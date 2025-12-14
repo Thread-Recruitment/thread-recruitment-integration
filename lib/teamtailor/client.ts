@@ -197,6 +197,18 @@ export class TeamTailorClient {
     return this.fetchAllPages<Question>('/questions')
   }
 
+  async getQuestionById(questionId: string): Promise<Question | null> {
+    try {
+      const response = await this.request<ApiResponse<Question>>(
+        'GET',
+        `/questions/${questionId}`
+      )
+      return response.data
+    } catch {
+      return null
+    }
+  }
+
   async getCustomFields(): Promise<CustomField[]> {
     return this.fetchAllPages<CustomField>('/custom-fields')
   }

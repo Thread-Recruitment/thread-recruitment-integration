@@ -36,14 +36,25 @@ export type AnswerValue =
   | { choices: number[] }
   | { range: number }
 
+export type QuestionType = 'Text' | 'Boolean' | 'Number' | 'Video' | 'Choice' | 'Range'
+
 export interface Question {
   id: string
   type: 'questions'
   attributes: {
     title: string
-    'question-type': 'text' | 'boolean' | 'choice' | 'range'
+    'question-type': QuestionType
   }
 }
+
+export type CustomFieldType =
+  | 'CustomField::Text'
+  | 'CustomField::Url'
+  | 'CustomField::Checkbox'
+  | 'CustomField::Number'
+  | 'CustomField::Date'
+  | 'CustomField::Select'
+  | 'CustomField::MultiSelect'
 
 export interface CustomField {
   id: string
@@ -51,7 +62,7 @@ export interface CustomField {
   attributes: {
     'api-name': string
     name: string
-    'field-type': string
+    'field-type': CustomFieldType
   }
 }
 

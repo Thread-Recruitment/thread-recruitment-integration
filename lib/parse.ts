@@ -1,7 +1,20 @@
 import type { ParsedFields } from '@/types'
 
+/**
+ * Normalize any ManyChat value to a string.
+ * ManyChat can send: Text, Number, Date, DateTime, Boolean, Array
+ */
+function normalizeValue(value: unknown): string {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number') return String(value)
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
+  if (Array.isArray(value)) return value.map(v => normalizeValue(v)).join(',')
+  return String(value)
+}
+
 export function parseManyChatFields(
-  body: Record<string, string>
+  body: Record<string, unknown>
 ): ParsedFields {
   const candidate: ParsedFields['candidate'] = {
     email: '',
@@ -15,7 +28,7 @@ export function parseManyChatFields(
       continue
     }
 
-    const strValue = String(value)
+    const strValue = normalizeValue(value)
 
     // Standard candidate fields
     if (key === 'tt_first_name') {
