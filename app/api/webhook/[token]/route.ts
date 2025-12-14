@@ -4,6 +4,7 @@ import { parseManyChatFields } from '@/lib/parse'
 import { syncCandidate } from '@/lib/sync'
 import { rateLimit } from '@/lib/rate-limit'
 import { formatSyncReportText, formatSyncReportJson } from '@/lib/report'
+import { sendSlackNotification } from '@/lib/slack'
 
 // Helper for consistent error responses
 function errorResponse(
@@ -74,7 +75,12 @@ export async function POST(
   // 6. Sync to TeamTailor
   const report = await syncCandidate(fields, jobId)
 
-  // 7. Log sync report
+  // 7. Send Slack notification (fire-and-forget)
+  sendSlackNotification(report, requestId).catch((err) =>
+    console.error('Failed to send Slack notification', err)
+  )
+
+  // 8. Log sync report
   const reportJson = formatSyncReportJson(report)
   log.info('Sync report', {
     request_id: requestId,
@@ -85,7 +91,7 @@ export async function POST(
   const reportText = formatSyncReportText(report)
   console.log(`\n--- Sync Report [${requestId}] ---\n${reportText}\n---\n`)
 
-  // 8. Return result
+  // 9. Return result
   await log.flush()
 
   if (report.success) {
