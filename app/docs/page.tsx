@@ -294,10 +294,11 @@ export default function DocsPage() {
           </p>
 
           <h3 className="mb-3 mt-8 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Notes
+            Notes (Comments)
           </h3>
           <p className="mb-3 text-zinc-600 dark:text-zinc-400">
-            Add a note to the candidate&apos;s profile with screening summaries or other context:
+            Add a comment to the candidate&apos;s activity feed with screening summaries or other context.
+            This appears under the &ldquo;Comments&rdquo; tab on the candidate card in TeamTailor:
           </p>
           <CodeBlock>
             {`{
@@ -394,7 +395,7 @@ Content-Type: application/json
             <li>Add tags: ManyChat, Instagram, Summer2025</li>
             <li>Record her answers to questions 3165763 and 3165764</li>
             <li>Set her &ldquo;source&rdquo; custom field to &ldquo;Instagram Ad&rdquo;</li>
-            <li>Add a note with the screening summary</li>
+            <li>Add a comment to the activity feed with the screening summary</li>
           </ul>
         </Section>
 
