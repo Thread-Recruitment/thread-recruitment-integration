@@ -21,14 +21,14 @@ export function requireEnv() {
   console.log('Environment loaded')
 }
 
-// Test configuration
-export const TEST_JOB_ID = '6913207' // Australia 2026 Wildfire Season Strike Team
+// Test configuration - can be overridden via command line arg
+export const TEST_JOB_ID = process.argv[2] || '6913207'
 
 // Test candidate data
 export const TEST_CANDIDATE = {
-  firstName: 'Test',
-  lastName: 'Candidate',
-  email: `test-${Date.now()}@example.com`, // Unique email to avoid merge
-  phone: '+64211234567',
-  tags: ['test', 'delete-me'],
+  firstName: 'Anthony',
+  lastName: 'Grant',
+  email: `anthony+test@anthonygrant.co`, // Unique email to avoid merge
+  phone: '+64211818825',
+  tags: [''],
 }
