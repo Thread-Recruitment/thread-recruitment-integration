@@ -186,6 +186,49 @@ export default function DocsPage() {
           </div>
         </Section>
 
+        {/* Answers vs Custom Fields */}
+        <Section title="Answers vs Custom Fields">
+          <p className="mb-4">
+            TeamTailor has two ways to store extra data about candidates. It&apos;s important to understand the difference:
+          </p>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                Answers (<code className="text-sm">tt_answer_</code>)
+              </h4>
+              <p className="mt-2 text-sm text-blue-800 dark:text-blue-200">
+                Responses to <strong>job-specific screening questions</strong>.
+              </p>
+              <ul className="mt-2 list-inside list-disc text-sm text-blue-700 dark:text-blue-300">
+                <li>Appear on the candidate&apos;s application for that job</li>
+                <li>Set up per-job in TeamTailor&apos;s job settings</li>
+                <li>Examples: &ldquo;Do you have work rights?&rdquo;, &ldquo;Years of experience?&rdquo;</li>
+              </ul>
+            </div>
+
+            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-900 dark:bg-purple-950">
+              <h4 className="font-semibold text-purple-900 dark:text-purple-100">
+                Custom Fields (<code className="text-sm">tt_custom_</code>)
+              </h4>
+              <p className="mt-2 text-sm text-purple-800 dark:text-purple-200">
+                Extra data on the <strong>candidate profile itself</strong>.
+              </p>
+              <ul className="mt-2 list-inside list-disc text-sm text-purple-700 dark:text-purple-300">
+                <li>Visible across all jobs the candidate applies to</li>
+                <li>Set up globally in TeamTailor settings</li>
+                <li>Examples: &ldquo;Traffic source&rdquo;, &ldquo;Region&rdquo;, &ldquo;Portfolio URL&rdquo;</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+            <p className="text-sm text-zinc-700 dark:text-zinc-300">
+              <strong>In short:</strong> Answers are per-application (job-specific), Custom Fields are per-candidate (global).
+            </p>
+          </div>
+        </Section>
+
         {/* Field Reference */}
         <Section title="Field Reference">
           <p className="mb-4">
@@ -208,14 +251,15 @@ export default function DocsPage() {
           />
 
           <h3 className="mb-3 mt-8 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Screening Answers
+            Screening Answers (Job-Specific)
           </h3>
           <p className="mb-3 text-zinc-600 dark:text-zinc-400">
-            To send answers to TeamTailor questions, use the format{' '}
+            To send answers to TeamTailor screening questions, use the format{' '}
             <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-800">
               tt_answer_QUESTION_ID
             </code>
-            . Get the question IDs from your TeamTailor admin or ask your administrator.
+            . These answers appear on the candidate&apos;s application for the specific job.
+            Get the question IDs from your TeamTailor admin.
           </p>
           <CodeBlock>
             {`{
@@ -224,19 +268,20 @@ export default function DocsPage() {
 }`}
           </CodeBlock>
           <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-500">
-            The system automatically detects answer types: &ldquo;yes&rdquo;/&ldquo;no&rdquo; become checkboxes,
-            and everything else is treated as text.
+            Values are automatically converted based on the question type in TeamTailor
+            (Boolean, Number, Text, etc.). For Yes/No questions, use &ldquo;yes&rdquo;, &ldquo;true&rdquo;, or &ldquo;1&rdquo;.
           </p>
 
           <h3 className="mb-3 mt-8 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Custom Fields
+            Custom Fields (Candidate Profile)
           </h3>
           <p className="mb-3 text-zinc-600 dark:text-zinc-400">
-            To set TeamTailor custom field values, use the format{' '}
+            To set TeamTailor custom field values on the candidate&apos;s profile, use the format{' '}
             <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-800">
               tt_custom_API_NAME
             </code>
-            . The API name is set when creating the custom field in TeamTailor.
+            . These values are visible across all jobs the candidate applies to.
+            The API name is set when creating the custom field in TeamTailor (Settings &rarr; Custom Fields).
           </p>
           <CodeBlock>
             {`{
@@ -244,6 +289,9 @@ export default function DocsPage() {
   "tt_custom_region": "Auckland"
 }`}
           </CodeBlock>
+          <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-500">
+            Values are automatically converted based on the field type (Text, URL, Checkbox, Number, Date).
+          </p>
 
           <h3 className="mb-3 mt-8 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             Notes
