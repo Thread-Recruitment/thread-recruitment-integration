@@ -1,4 +1,4 @@
-import type { SyncReport } from '@/types'
+import type { SyncReport, FieldResult } from '@/types'
 
 const TEAMTAILOR_COMPANY_ID = process.env.TEAMTAILOR_COMPANY_ID || 'aw3alxwdbpk@eu'
 
@@ -19,6 +19,29 @@ function statusEmoji(status: string): string {
 
 function buildCandidateUrl(candidateId: string): string {
   return `https://app.teamtailor.com/companies/${TEAMTAILOR_COMPANY_ID}/candidates/${candidateId}`
+}
+
+function buildFieldBreakdown(
+  label: string,
+  emoji: string,
+  fields: FieldResult[]
+): object | null {
+  if (fields.length === 0) return null
+
+  const lines = fields.map((f) => {
+    const icon = statusEmoji(f.status)
+    const truncatedValue = f.value.length > 50 ? f.value.slice(0, 47) + '...' : f.value
+    const errorSuffix = f.error ? ` _${f.error}_` : ''
+    return `${icon} \`${f.field}\`: ${truncatedValue}${errorSuffix}`
+  })
+
+  return {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: `${emoji} *${label}:*\n${lines.join('\n')}`,
+    },
+  }
 }
 
 export async function sendSlackNotification(
@@ -113,6 +136,16 @@ export async function sendSlackNotification(
       },
     },
   ]
+
+  // Add field breakdowns if there are any answers or custom fields
+  const answersBreakdown = buildFieldBreakdown('Answers', ':clipboard:', report.answers)
+  const customFieldsBreakdown = buildFieldBreakdown('Custom Fields', ':label:', report.customFields)
+
+  if (answersBreakdown || customFieldsBreakdown) {
+    blocks.push({ type: 'divider' })
+    if (answersBreakdown) blocks.push(answersBreakdown)
+    if (customFieldsBreakdown) blocks.push(customFieldsBreakdown)
+  }
 
   // Add error if present
   if (report.error) {
