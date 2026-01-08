@@ -28,15 +28,15 @@ const payload = {
 
   // Screening answers for job 6998249
   tt_answer_3165763: 'Yes', // Do you have permanent work rights? (Boolean)
-  tt_answer_3213708: 'Auckland, New Zealand', // Location (Text)
+  tt_answer_3213708: 'Wellington, New Zealand', // Location (Text) - UPDATED from Auckland
   tt_answer_3522414: 'N/A - I have permanent work rights', // If no, what is your work visa situation? (Text)
-  tt_answer_3522439: '$80,000 - $100,000', // Salary Expectations (Text)
+  tt_answer_3522439: '$90,000 - $110,000', // Salary Expectations (Text) - UPDATED range
 
   // Invalid answer ID - should fail gracefully
   tt_answer_9999999: 'This question does not exist', // Should report as failed/not_found
 
   // Custom fields (candidate profile) - testing all types
-  tt_custom_location: 'Auckland', // Text
+  tt_custom_location: 'Wellington', // Text - UPDATED from Auckland
   'tt_custom_based-location': 'New Zealand', // Text
   'tt_custom_video-interview': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // URL
   tt_custom_websiteportfolio: 'https://example.com/portfolio', // URL

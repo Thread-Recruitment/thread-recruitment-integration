@@ -399,6 +399,78 @@ Content-Type: application/json
           </ul>
         </Section>
 
+        {/* Real Request Example */}
+        <Section title="Real Request Example">
+          <p className="mb-4">
+            Here&apos;s a comprehensive example showing all field types, including the test job&apos;s
+            actual question IDs and custom fields:
+          </p>
+          <CodeBlock>
+            {`POST /api/webhook/[secret]?job_id=6998249
+Content-Type: application/json
+
+{
+  "tt_first_name": "Jane",
+  "tt_last_name": "Doe",
+  "tt_email": "jane.doe@example.com",
+  "tt_phone": "+64 21 555 1234",
+  "tt_tags": "ManyChat,Instagram,test-webhook",
+
+  // Screening Answers (job-specific questions)
+  "tt_answer_3165763": "Yes",                              // Do you have permanent work rights? (Boolean)
+  "tt_answer_3213708": "Wellington, New Zealand",          // Location (Text)
+  "tt_answer_3522414": "N/A - I have permanent work rights", // If no, what is your work visa situation? (Text)
+  "tt_answer_3522439": "$90,000 - $110,000",               // Salary Expectations (Text)
+
+  // Custom Fields (candidate profile)
+  "tt_custom_location": "Wellington",                      // Text
+  "tt_custom_based-location": "New Zealand",               // Text
+  "tt_custom_video-interview": "https://youtube.com/...",  // URL
+  "tt_custom_websiteportfolio": "https://example.com/...", // URL
+  "tt_custom_visa-sponsorship-required": "no",             // Checkbox (converts to false)
+  "tt_custom_additional-notes": "From ManyChat integration", // Text
+
+  // Notes (adds to activity timeline)
+  "tt_notes": "**ManyChat Screening Summary**\\n\\n- Work Rights: Yes\\n- Location: Wellington"
+}`}
+          </CodeBlock>
+
+          <p className="mt-3 text-sm text-zinc-500">
+            Note: Comments shown above are for documentation only. Real JSON cannot contain comments.
+          </p>
+
+          <h3 className="mb-3 mt-6 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            Upsert Behavior
+          </h3>
+          <p className="mb-3 text-zinc-600 dark:text-zinc-400">
+            If the same candidate submits again (same email), the system intelligently handles duplicates:
+          </p>
+          <ul className="list-inside list-disc space-y-2 text-zinc-600 dark:text-zinc-400">
+            <li>
+              <strong>Candidate:</strong> Merged with existing profile (updated, not duplicated)
+            </li>
+            <li>
+              <strong>Job Application:</strong> Skipped if already applied to this job
+            </li>
+            <li>
+              <strong>Answers:</strong> Updated if answer already exists for that question
+            </li>
+            <li>
+              <strong>Custom Fields:</strong> Updated if value already exists for that field
+            </li>
+            <li>
+              <strong>Notes:</strong> Always creates a new entry (activity timeline)
+            </li>
+          </ul>
+
+          <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950">
+            <p className="text-sm text-green-800 dark:text-green-200">
+              <strong>Tip:</strong> This means candidates can safely resubmit to correct information
+              without creating duplicate records or failing requests.
+            </p>
+          </div>
+        </Section>
+
         <div className="mt-16 border-t border-zinc-200 pt-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
           Need help? Contact your administrator.
         </div>

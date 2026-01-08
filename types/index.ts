@@ -13,7 +13,7 @@ export interface ParsedFields {
   notes?: string
 }
 
-export type FieldStatus = 'success' | 'failed' | 'skipped' | 'not_found'
+export type FieldStatus = 'success' | 'failed' | 'skipped' | 'not_found' | 'updated' | 'already_exists'
 
 export interface FieldResult {
   field: string

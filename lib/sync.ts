@@ -138,24 +138,37 @@ export async function syncCandidate(
     report.candidate = 'success'
     log.info('Candidate created', { candidate_id: report.candidateId })
 
-    // Step 2: Create job application
+    // Step 2: Create or find existing job application
     log.info('Creating job application', { candidate_id: report.candidateId, job_id: jobId })
 
     try {
-      await teamtailor.createJobApplication(report.candidateId, jobId)
-      report.jobApplication = 'success'
-      log.info('Job application created')
+      // Check if job application already exists
+      const existingApplications = await teamtailor.getJobApplicationsForCandidate(report.candidateId)
+      const existingApplication = existingApplications.find(
+        (app) => app.relationships?.job?.data?.id === jobId
+      )
+
+      if (existingApplication) {
+        report.jobApplication = 'already_exists'
+        log.info('Job application already exists', { application_id: existingApplication.id })
+      } else {
+        await teamtailor.createJobApplication(report.candidateId, jobId)
+        report.jobApplication = 'success'
+        log.info('Job application created')
+      }
     } catch (error) {
-      // Job application might already exist if candidate was merged
       report.jobApplication = 'failed'
-      log.warn('Job application creation failed (may already exist)', {
+      log.warn('Job application creation failed', {
         error: error instanceof Error ? error.message : error
       })
     }
 
-    // Step 3: Create answers
+    // Step 3: Create or update answers
+    // Fetch existing answers once to avoid multiple API calls
+    const existingAnswers = await teamtailor.getAnswersForCandidate(report.candidateId)
+
     for (const answer of fields.answers) {
-      log.info('Creating answer', {
+      log.info('Processing answer', {
         candidate_id: report.candidateId,
         question_id: answer.questionId,
       })
@@ -184,13 +197,26 @@ export async function syncCandidate(
           log.warn('Question not found, using legacy parsing', { question_id: answer.questionId })
         }
 
-        await teamtailor.createAnswer(report.candidateId, answer.questionId, answerValue)
-        result.status = 'success'
-        log.info('Answer created', { question_id: answer.questionId })
+        // Check if an answer already exists for this question
+        const existingAnswer = existingAnswers.find(
+          (a) => a.relationships?.question?.data?.id === answer.questionId
+        )
+
+        if (existingAnswer) {
+          // Update existing answer
+          await teamtailor.updateAnswer(existingAnswer.id, answerValue)
+          result.status = 'updated'
+          log.info('Answer updated', { question_id: answer.questionId, answer_id: existingAnswer.id })
+        } else {
+          // Create new answer
+          await teamtailor.createAnswer(report.candidateId, answer.questionId, answerValue)
+          result.status = 'success'
+          log.info('Answer created', { question_id: answer.questionId })
+        }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error)
         result.error = errorMsg
-        log.error('Failed to create answer', {
+        log.error('Failed to process answer', {
           question_id: answer.questionId,
           error: errorMsg,
         })
@@ -199,9 +225,12 @@ export async function syncCandidate(
       report.answers.push(result)
     }
 
-    // Step 4: Create custom field values
+    // Step 4: Create or update custom field values
+    // Fetch existing custom field values once to avoid multiple API calls
+    const existingCustomFieldValues = await teamtailor.getCustomFieldValuesForCandidate(report.candidateId)
+
     for (const customField of fields.customFields) {
-      log.info('Creating custom field value', {
+      log.info('Processing custom field value', {
         candidate_id: report.candidateId,
         api_name: customField.apiName,
       })
@@ -229,13 +258,26 @@ export async function syncCandidate(
             converted_value: convertedValue,
           })
 
-          await teamtailor.createCustomFieldValue(
-            report.candidateId,
-            field.id,
-            convertedValue
+          // Check if a value already exists for this custom field
+          const existingValue = existingCustomFieldValues.find(
+            (v) => v.relationships?.['custom-field']?.data?.id === field.id
           )
-          result.status = 'success'
-          log.info('Custom field value created', { api_name: customField.apiName })
+
+          if (existingValue) {
+            // Update existing value
+            await teamtailor.updateCustomFieldValue(existingValue.id, convertedValue)
+            result.status = 'updated'
+            log.info('Custom field value updated', { api_name: customField.apiName, value_id: existingValue.id })
+          } else {
+            // Create new value
+            await teamtailor.createCustomFieldValue(
+              report.candidateId,
+              field.id,
+              convertedValue
+            )
+            result.status = 'success'
+            log.info('Custom field value created', { api_name: customField.apiName })
+          }
         } else {
           result.status = 'not_found'
           result.error = 'Custom field not found'
@@ -244,7 +286,7 @@ export async function syncCandidate(
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error)
         result.error = errorMsg
-        log.error('Failed to create custom field value', {
+        log.error('Failed to process custom field value', {
           api_name: customField.apiName,
           error: errorMsg,
         })
@@ -253,7 +295,7 @@ export async function syncCandidate(
       report.customFields.push(result)
     }
 
-    // Step 5: Create note if provided
+    // Step 5: Create note if provided (notes are a timeline, always add new entry)
     if (fields.notes) {
       log.info('Creating note', { candidate_id: report.candidateId })
 

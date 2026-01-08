@@ -4,6 +4,10 @@ function statusLabel(status: FieldStatus): string {
   switch (status) {
     case 'success':
       return 'Success'
+    case 'updated':
+      return 'Updated'
+    case 'already_exists':
+      return 'Already Exists'
     case 'failed':
       return 'Failed'
     case 'skipped':
@@ -11,6 +15,10 @@ function statusLabel(status: FieldStatus): string {
     case 'not_found':
       return 'Not Found'
   }
+}
+
+function isSuccessStatus(status: FieldStatus): boolean {
+  return status === 'success' || status === 'updated' || status === 'already_exists'
 }
 
 function formatFieldResult(result: FieldResult): string {
@@ -38,7 +46,7 @@ export function formatSyncReportText(report: SyncReport): string {
   lines.push(`Job Application: ${statusLabel(report.jobApplication)}`)
 
   if (report.answers.length > 0) {
-    const successCount = report.answers.filter((a) => a.status === 'success').length
+    const successCount = report.answers.filter((a) => isSuccessStatus(a.status)).length
     lines.push('')
     lines.push(`Answers (${successCount}/${report.answers.length}):`)
     for (const answer of report.answers) {
@@ -47,7 +55,7 @@ export function formatSyncReportText(report: SyncReport): string {
   }
 
   if (report.customFields.length > 0) {
-    const successCount = report.customFields.filter((f) => f.status === 'success').length
+    const successCount = report.customFields.filter((f) => isSuccessStatus(f.status)).length
     lines.push('')
     lines.push(`Custom Fields (${successCount}/${report.customFields.length}):`)
     for (const field of report.customFields) {
@@ -116,10 +124,10 @@ export function formatSyncReportJson(report: SyncReport): JsonReport {
 
   const summary: JsonReportSummary = {
     total: fields.length + 2 + (report.notes !== null ? 1 : 0),
-    success: fields.filter((f) => f.status === 'success').length +
-      (report.candidate === 'success' ? 1 : 0) +
-      (report.jobApplication === 'success' ? 1 : 0) +
-      (report.notes === 'success' ? 1 : 0),
+    success: fields.filter((f) => isSuccessStatus(f.status)).length +
+      (isSuccessStatus(report.candidate) ? 1 : 0) +
+      (isSuccessStatus(report.jobApplication) ? 1 : 0) +
+      (report.notes !== null && isSuccessStatus(report.notes) ? 1 : 0),
     failed: fields.filter((f) => f.status === 'failed').length +
       (report.candidate === 'failed' ? 1 : 0) +
       (report.jobApplication === 'failed' ? 1 : 0) +

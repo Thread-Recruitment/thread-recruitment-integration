@@ -214,8 +214,16 @@ export class TeamTailorClient {
   }
 
   private async fetchAllPages<T>(path: string): Promise<T[]> {
+    return this.fetchAllPagesWithParams<T>(path, {})
+  }
+
+  private async fetchAllPagesWithParams<T>(
+    path: string,
+    params: Record<string, string>
+  ): Promise<T[]> {
     const results: T[] = []
-    let url: string | null = `${this.baseUrl}${path}?page[size]=30`
+    const searchParams = new URLSearchParams({ 'page[size]': '30', ...params })
+    let url: string | null = `${this.baseUrl}${path}?${searchParams.toString()}`
 
     while (url) {
       const response = await fetch(url, {
@@ -240,6 +248,66 @@ export class TeamTailorClient {
     return (
       fields.find((f) => f.attributes['api-name'] === apiName) || null
     )
+  }
+
+  async getJobApplicationsForCandidate(candidateId: string): Promise<JobApplication[]> {
+    // Include job relationship to match by job ID
+    return this.fetchAllPagesWithParams<JobApplication>(
+      `/candidates/${candidateId}/job-applications`,
+      { include: 'job' }
+    )
+  }
+
+  async getAnswersForCandidate(candidateId: string): Promise<Answer[]> {
+    // Include question relationship to match by question ID
+    return this.fetchAllPagesWithParams<Answer>(
+      `/candidates/${candidateId}/answers`,
+      { include: 'question' }
+    )
+  }
+
+  async getCustomFieldValuesForCandidate(candidateId: string): Promise<CustomFieldValue[]> {
+    // Include custom-field relationship to match by field ID
+    return this.fetchAllPagesWithParams<CustomFieldValue>(
+      `/candidates/${candidateId}/custom-field-values`,
+      { include: 'custom-field' }
+    )
+  }
+
+  async updateAnswer(answerId: string, value: AnswerValue): Promise<Answer> {
+    const payload = {
+      data: {
+        id: answerId,
+        type: 'answers',
+        attributes: value,
+      },
+    }
+
+    const response = await this.request<ApiResponse<Answer>>(
+      'PATCH',
+      `/answers/${answerId}`,
+      payload
+    )
+    return response.data
+  }
+
+  async updateCustomFieldValue(valueId: string, value: string): Promise<CustomFieldValue> {
+    const payload = {
+      data: {
+        id: valueId,
+        type: 'custom-field-values',
+        attributes: {
+          value,
+        },
+      },
+    }
+
+    const response = await this.request<ApiResponse<CustomFieldValue>>(
+      'PATCH',
+      `/custom-field-values/${valueId}`,
+      payload
+    )
+    return response.data
   }
 
   async deleteCandidate(candidateId: string): Promise<void> {

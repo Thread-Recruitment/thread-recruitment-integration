@@ -23,11 +23,28 @@ export interface CandidateInput {
 export interface JobApplication {
   id: string
   type: 'job-applications'
+  relationships?: {
+    job?: {
+      data: { id: string; type: 'jobs' }
+    }
+    candidate?: {
+      data: { id: string; type: 'candidates' }
+    }
+  }
 }
 
 export interface Answer {
   id: string
   type: 'answers'
+  attributes?: AnswerValue
+  relationships?: {
+    question?: {
+      data: { id: string; type: 'questions' }
+    }
+    candidate?: {
+      data: { id: string; type: 'candidates' }
+    }
+  }
 }
 
 export type AnswerValue =
@@ -69,11 +86,25 @@ export interface CustomField {
 export interface CustomFieldValue {
   id: string
   type: 'custom-field-values'
+  attributes?: {
+    value: string
+  }
+  relationships?: {
+    'custom-field'?: {
+      data: { id: string; type: 'custom-fields' }
+    }
+    owner?: {
+      data: { id: string; type: 'candidates' }
+    }
+  }
 }
 
 export interface Note {
   id: string
   type: 'notes'
+  attributes?: {
+    note: string
+  }
 }
 
 export interface Job {

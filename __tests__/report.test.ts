@@ -78,6 +78,36 @@ describe('formatSyncReportText', () => {
     expect(text).toContain('Error: API error: 401 Unauthorized')
     expect(text).not.toContain('Candidate ID:')
   })
+
+  it('formats upsert scenarios with updated and already_exists statuses', () => {
+    const report: SyncReport = {
+      success: true,
+      candidateId: '123456',
+      email: 'john@example.com',
+      jobId: '789',
+      candidate: 'success',
+      jobApplication: 'already_exists',
+      answers: [
+        { field: '3165763', value: 'Yes', status: 'updated' },
+        { field: '3165766', value: '5', status: 'success' },
+      ],
+      customFields: [
+        { field: 'source', value: 'Instagram', status: 'updated' },
+      ],
+      notes: 'already_exists',
+    }
+
+    const text = formatSyncReportText(report)
+
+    expect(text).toContain('Job Application: Already Exists')
+    expect(text).toContain('[3165763] Yes - Updated')
+    expect(text).toContain('[3165766] 5 - Success')
+    expect(text).toContain('[source] Instagram - Updated')
+    expect(text).toContain('Notes: Already Exists')
+    // Updated and already_exists should count as success
+    expect(text).toContain('Answers (2/2):')
+    expect(text).toContain('Custom Fields (1/1):')
+  })
 })
 
 describe('formatSyncReportJson', () => {
@@ -142,5 +172,37 @@ describe('formatSyncReportJson', () => {
 
     expect(json.candidateId).toBeUndefined()
     expect(json.error).toBe('Failed')
+  })
+
+  it('counts updated and already_exists as success in summary', () => {
+    const report: SyncReport = {
+      success: true,
+      candidateId: '123456',
+      email: 'john@example.com',
+      jobId: '789',
+      candidate: 'success',
+      jobApplication: 'already_exists',
+      answers: [
+        { field: '3165763', value: 'Yes', status: 'updated' },
+        { field: '3165766', value: '5', status: 'success' },
+      ],
+      customFields: [
+        { field: 'source', value: 'Instagram', status: 'updated' },
+      ],
+      notes: 'already_exists',
+    }
+
+    const json = formatSyncReportJson(report)
+
+    expect(json.success).toBe(true)
+    // Total: candidate + job app + 2 answers + 1 custom field + notes = 6
+    expect(json.summary.total).toBe(6)
+    // All should count as success: candidate(success) + jobApp(already_exists) +
+    // answer1(updated) + answer2(success) + customField(updated) + notes(already_exists) = 6
+    expect(json.summary.success).toBe(6)
+    expect(json.summary.failed).toBe(0)
+    expect(json.summary.notFound).toBe(0)
+    expect(json.jobApplication).toBe('already_exists')
+    expect(json.notes).toBe('already_exists')
   })
 })
