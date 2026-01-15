@@ -14,9 +14,21 @@ export default function DocsPage() {
         <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
           ManyChat Integration Guide
         </h1>
-        <p className="mb-12 text-zinc-600 dark:text-zinc-400">
+        <p className="mb-8 text-zinc-600 dark:text-zinc-400">
           Connect your ManyChat chatbot to automatically create candidates in TeamTailor.
         </p>
+
+        <div className="mb-12 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <strong className="text-zinc-900 dark:text-zinc-100">Need to find Question IDs or Custom Field names?</strong>{' '}
+            <Link
+              href="/docs/finding-ids"
+              className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              See our guide on finding IDs &rarr;
+            </Link>
+          </p>
+        </div>
 
         {/* How It Works */}
         <Section title="How It Works">
