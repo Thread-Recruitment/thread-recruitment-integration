@@ -55,7 +55,7 @@ export default function DocsPage() {
           </ol>
 
           <h3 className="mb-3 mt-6 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Required Custom Fields
+            Base Candidate Custom Fields
           </h3>
           <Table
             headers={['Field Name', 'Type', 'Description']}
@@ -68,7 +68,7 @@ export default function DocsPage() {
           />
 
           <h3 className="mb-3 mt-6 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Optional Custom Fields
+            Additional Custom Fields
           </h3>
           <Table
             headers={['Field Name', 'Type', 'Description']}
@@ -210,48 +210,18 @@ export default function DocsPage() {
           </div>
         </Section>
 
-        {/* Answers vs Custom Fields */}
-        <Section title="Answers vs Custom Fields">
-          <p className="mb-4">
-            TeamTailor has two ways to store extra data about candidates. It&apos;s important to understand the difference:
+        {/* Answers vs Custom Fields - Link to dedicated page */}
+        <div className="mb-12 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="text-zinc-600 dark:text-zinc-400">
+            <strong className="text-zinc-900 dark:text-zinc-100">What&apos;s the difference between Answers and Custom Fields?</strong>{' '}
+            <Link
+              href="/docs/answers-vs-custom-fields"
+              className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              Learn when to use each &rarr;
+            </Link>
           </p>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950">
-              <h4 className="font-semibold text-blue-900 dark:text-blue-100">
-                Answers (<code className="text-sm">tt_answer_</code>)
-              </h4>
-              <p className="mt-2 text-sm text-blue-800 dark:text-blue-200">
-                Responses to <strong>job-specific screening questions</strong>.
-              </p>
-              <ul className="mt-2 list-inside list-disc text-sm text-blue-700 dark:text-blue-300">
-                <li>Appear on the candidate&apos;s application for that job</li>
-                <li>Set up per-job in TeamTailor&apos;s job settings</li>
-                <li>Examples: &ldquo;Do you have work rights?&rdquo;, &ldquo;Years of experience?&rdquo;</li>
-              </ul>
-            </div>
-
-            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-900 dark:bg-purple-950">
-              <h4 className="font-semibold text-purple-900 dark:text-purple-100">
-                Custom Fields (<code className="text-sm">tt_custom_</code>)
-              </h4>
-              <p className="mt-2 text-sm text-purple-800 dark:text-purple-200">
-                Extra data on the <strong>candidate profile itself</strong>.
-              </p>
-              <ul className="mt-2 list-inside list-disc text-sm text-purple-700 dark:text-purple-300">
-                <li>Visible across all jobs the candidate applies to</li>
-                <li>Set up globally in TeamTailor settings</li>
-                <li>Examples: &ldquo;Traffic source&rdquo;, &ldquo;Region&rdquo;, &ldquo;Portfolio URL&rdquo;</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-700 dark:bg-zinc-800">
-            <p className="text-sm text-zinc-700 dark:text-zinc-300">
-              <strong>In short:</strong> Answers are per-application (job-specific), Custom Fields are per-candidate (global).
-            </p>
-          </div>
-        </Section>
+        </div>
 
         {/* Field Reference */}
         <Section title="Field Reference">
@@ -331,35 +301,46 @@ export default function DocsPage() {
           </CodeBlock>
         </Section>
 
-        {/* Multiple Jobs */}
-        <Section title="Multiple Jobs">
-          <p>
-            The <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-800">job_id</code> in the URL determines which job the candidate
-            is applied to. To route candidates to different jobs:
-          </p>
-          <ul className="mt-3 list-inside list-disc space-y-2 text-zinc-600 dark:text-zinc-400">
-            <li>Create separate ManyChat flows for each job, each with its own webhook URL</li>
-            <li>Or use conditional logic to send to different webhook URLs based on user responses</li>
-            <li>Each URL should have the appropriate job_id for that position</li>
-          </ul>
-        </Section>
+        {/* Frequently Asked Questions */}
+        <Section title="Frequently Asked Questions">
+          <div className="space-y-6">
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                How do I apply candidates to multiple jobs?
+              </h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                The <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-800">job_id</code> in the URL determines which job the candidate
+                is applied to. To route candidates to different jobs:
+              </p>
+              <ul className="mt-2 list-inside list-disc space-y-1 text-zinc-600 dark:text-zinc-400">
+                <li>Create separate ManyChat flows for each job, each with its own webhook URL</li>
+                <li>Or use conditional logic to send to different webhook URLs based on user responses</li>
+                <li>Each URL should have the appropriate job_id for that position</li>
+              </ul>
+            </div>
 
-        {/* Duplicate Handling */}
-        <Section title="Duplicate Candidates">
-          <p>
-            If a candidate with the same email already exists in TeamTailor, their profile will be
-            updated with the new information instead of creating a duplicate. They&apos;ll also be applied
-            to the new job if they haven&apos;t applied already.
-          </p>
-        </Section>
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                What happens with duplicate candidates?
+              </h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                If a candidate with the same email already exists in TeamTailor, their profile will be
+                updated with the new information instead of creating a duplicate. They&apos;ll also be applied
+                to the new job if they haven&apos;t applied already.
+              </p>
+            </div>
 
-        {/* Rate Limits */}
-        <Section title="Rate Limits">
-          <p>
-            The webhook accepts up to 60 requests per minute from the same IP address. This is more
-            than enough for normal chatbot traffic. If you&apos;re doing bulk imports, space them out over
-            time.
-          </p>
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                Are there rate limits?
+              </h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                The webhook accepts up to 60 requests per minute from the same IP address. This is more
+                than enough for normal chatbot traffic. If you&apos;re doing bulk imports, space them out over
+                time.
+              </p>
+            </div>
+          </div>
         </Section>
 
         {/* Troubleshooting */}
