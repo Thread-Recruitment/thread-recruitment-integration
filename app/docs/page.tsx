@@ -185,28 +185,38 @@ export default function DocsPage() {
 
             <Step number={3} title="Set Up the JSON Body">
               <p className="mb-2 text-zinc-600 dark:text-zinc-400">
-                Map your ManyChat custom fields to the JSON body. Use the ManyChat variable syntax:
+                Map your ManyChat custom fields to the JSON body. <strong>Important:</strong> Do NOT put quotes around the variable placeholders.
               </p>
               <CodeBlock>
                 {`{
-  "tt_email": "{{tt_email}}",
-  "tt_first_name": "{{tt_first_name}}",
-  "tt_last_name": "{{tt_last_name}}",
-  "tt_phone": "{{tt_phone}}",
-  "tt_tags": "{{tt_tags}}",
-  "tt_answer_3165763": "{{tt_answer_3165763}}",
-  "tt_notes": "{{tt_notes}}"
+  "tt_email": {{tt_email}},
+  "tt_first_name": {{tt_first_name}},
+  "tt_last_name": {{tt_last_name}},
+  "tt_phone": {{tt_phone}},
+  "tt_tags": {{tt_tags}},
+  "tt_answer_3165763": {{tt_answer_3165763}},
+  "tt_notes": {{tt_notes}}
 }`}
               </CodeBlock>
               <p className="mt-2 text-sm text-zinc-500">
-                Each <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">{`{{field_name}}`}</code> will be replaced with the
-                value from that custom field.
+                The variable placeholders (highlighted in blue) should be inserted directly without surrounding quotes.
+                ManyChat will handle the JSON encoding.
               </p>
             </Step>
 
-            <Step number={4} title="Send the Request">
-              Make sure &ldquo;Encode to JSON&rdquo; is turned <strong>OFF</strong> for each field.
-              ManyChat will send the data as a standard JSON object.
+            <Step number={4} title="Enable JSON Encoding">
+              <p className="mb-3 text-zinc-600 dark:text-zinc-400">
+                For each field, make sure <strong>&ldquo;Encode to JSON&rdquo; is checked</strong>. This ensures special characters (quotes, newlines) are properly escaped.
+              </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/manychat_external_request_setup.png"
+                alt="ManyChat External Request setup showing Encode to JSON enabled and no quotes around variables"
+                className="rounded-lg border border-zinc-200 dark:border-zinc-700"
+              />
+              <p className="mt-2 text-sm text-zinc-500">
+                Notice: &ldquo;Encode to JSON&rdquo; is checked, and variables are placed without quotes around them.
+              </p>
             </Step>
           </div>
         </Section>
@@ -368,7 +378,8 @@ export default function DocsPage() {
             <Troubleshoot title="Data not appearing in TeamTailor">
               <ul className="mt-1 list-inside list-disc space-y-1">
                 <li>Check that all field names start with <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">tt_</code></li>
-                <li>Verify &ldquo;Encode to JSON&rdquo; is turned <strong>OFF</strong> in ManyChat</li>
+                <li>Verify &ldquo;Encode to JSON&rdquo; is <strong>enabled</strong> in ManyChat</li>
+                <li>Make sure there are <strong>no quotes</strong> around the variable placeholders</li>
                 <li>Check that the custom field values aren&apos;t empty</li>
               </ul>
             </Troubleshoot>
