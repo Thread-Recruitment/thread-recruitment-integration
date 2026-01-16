@@ -204,8 +204,9 @@ export default function DocsPage() {
               </p>
             </Step>
 
-            <Step number={4} title="Enable JSON Encoding">
-              Turn on &ldquo;Encode to JSON&rdquo; for each field to handle special characters (quotes, newlines) properly.
+            <Step number={4} title="Send the Request">
+              Make sure &ldquo;Encode to JSON&rdquo; is turned <strong>OFF</strong> for each field.
+              ManyChat will send the data as a standard JSON object.
             </Step>
           </div>
         </Section>
@@ -367,7 +368,7 @@ export default function DocsPage() {
             <Troubleshoot title="Data not appearing in TeamTailor">
               <ul className="mt-1 list-inside list-disc space-y-1">
                 <li>Check that all field names start with <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">tt_</code></li>
-                <li>Verify &ldquo;Encode to JSON&rdquo; is enabled in ManyChat</li>
+                <li>Verify &ldquo;Encode to JSON&rdquo; is turned <strong>OFF</strong> in ManyChat</li>
                 <li>Check that the custom field values aren&apos;t empty</li>
               </ul>
             </Troubleshoot>
