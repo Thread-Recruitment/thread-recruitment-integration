@@ -218,6 +218,36 @@ export default function DocsPage() {
                 Notice: &ldquo;Encode to JSON&rdquo; is checked, and variables are placed without quotes around them.
               </p>
             </Step>
+
+            <Step number={5} title="Confirm the Sync">
+              <p className="mb-3 text-zinc-600 dark:text-zinc-400">
+                After a candidate completes the flow, verify everything synced correctly:
+              </p>
+              <h5 className="mb-2 mt-4 font-medium text-zinc-900 dark:text-zinc-100">
+                Slack Notification
+              </h5>
+              <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+                If configured, you&apos;ll receive a Slack notification with a summary of the sync:
+              </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/slack_notificaiton.png"
+                alt="Slack notification showing successful candidate sync with operation summary"
+                className="rounded-lg border border-zinc-200 dark:border-zinc-700"
+              />
+              <h5 className="mb-2 mt-6 font-medium text-zinc-900 dark:text-zinc-100">
+                TeamTailor Candidate
+              </h5>
+              <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+                In TeamTailor, you can view the candidate profile with all synced data:
+              </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/teamtailor_review_candidate.png"
+                alt="TeamTailor candidate profile showing synced data from ManyChat"
+                className="rounded-lg border border-zinc-200 dark:border-zinc-700"
+              />
+            </Step>
           </div>
         </Section>
 
@@ -332,12 +362,20 @@ export default function DocsPage() {
 
             <div>
               <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                What happens with duplicate candidates?
+                What happens if a candidate submits again?
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                If a candidate with the same email already exists in TeamTailor, their profile will be
-                updated with the new information instead of creating a duplicate. They&apos;ll also be applied
-                to the new job if they haven&apos;t applied already.
+              <p className="mb-3 text-zinc-600 dark:text-zinc-400">
+                The system intelligently handles re-submissions (same email):
+              </p>
+              <ul className="list-inside list-disc space-y-1 text-zinc-600 dark:text-zinc-400">
+                <li><strong>Candidate:</strong> Merged with existing profile (updated, not duplicated)</li>
+                <li><strong>Job Application:</strong> Skipped if already applied to this job</li>
+                <li><strong>Answers:</strong> Updated if answer already exists for that question</li>
+                <li><strong>Custom Fields:</strong> Updated if value already exists for that field</li>
+                <li><strong>Notes:</strong> Always creates a new entry (activity timeline)</li>
+              </ul>
+              <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+                This means candidates can safely resubmit to correct information without creating duplicates.
               </p>
             </div>
 
@@ -455,37 +493,6 @@ Content-Type: application/json
           <p className="mt-3 text-sm text-zinc-500">
             Note: Comments shown above are for documentation only. Real JSON cannot contain comments.
           </p>
-
-          <h3 className="mb-3 mt-6 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Upsert Behavior
-          </h3>
-          <p className="mb-3 text-zinc-600 dark:text-zinc-400">
-            If the same candidate submits again (same email), the system intelligently handles duplicates:
-          </p>
-          <ul className="list-inside list-disc space-y-2 text-zinc-600 dark:text-zinc-400">
-            <li>
-              <strong>Candidate:</strong> Merged with existing profile (updated, not duplicated)
-            </li>
-            <li>
-              <strong>Job Application:</strong> Skipped if already applied to this job
-            </li>
-            <li>
-              <strong>Answers:</strong> Updated if answer already exists for that question
-            </li>
-            <li>
-              <strong>Custom Fields:</strong> Updated if value already exists for that field
-            </li>
-            <li>
-              <strong>Notes:</strong> Always creates a new entry (activity timeline)
-            </li>
-          </ul>
-
-          <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950">
-            <p className="text-sm text-green-800 dark:text-green-200">
-              <strong>Tip:</strong> This means candidates can safely resubmit to correct information
-              without creating duplicate records or failing requests.
-            </p>
-          </div>
         </Section>
 
         <div className="mt-16 border-t border-zinc-200 pt-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
