@@ -72,11 +72,11 @@ async function main() {
     process.exit(1)
   }
 
-  const url = `${BASE_URL}/api/webhook/${WEBHOOK_SECRET}?job_id=${TEST_JOB_ID}`
+  const url = `${BASE_URL}/api/webhook?job_id=${TEST_JOB_ID}`
 
   console.log('\n=== ManyChat Webhook Test ===\n')
   console.log(`Job ID: ${TEST_JOB_ID}`)
-  console.log(`URL: ${BASE_URL}/api/webhook/[secret]?job_id=${TEST_JOB_ID}`)
+  console.log(`URL: ${BASE_URL}/api/webhook?job_id=${TEST_JOB_ID}`)
   console.log(`Email: ${payload.tt_email}`)
   console.log('')
   console.log('Payload:')
@@ -88,6 +88,7 @@ async function main() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${WEBHOOK_SECRET}`,
       },
       body: JSON.stringify(payload),
     })

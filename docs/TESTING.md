@@ -40,8 +40,9 @@ npm run dev
 Send a test request:
 
 ```bash
-curl -X POST "http://localhost:3000/api/webhook/YOUR_WEBHOOK_SECRET?job_id=YOUR_JOB_ID" \
+curl -X POST "http://localhost:3000/api/webhook?job_id=YOUR_JOB_ID" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_WEBHOOK_SECRET" \
   -d '{
     "tt_first_name": "Test",
     "tt_last_name": "User",

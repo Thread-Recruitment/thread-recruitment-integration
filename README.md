@@ -15,13 +15,14 @@ cp .env.example .env.local
 | Variable | Description |
 |----------|-------------|
 | `TEAMTAILOR_API_KEY` | TeamTailor API key |
-| `WEBHOOK_SECRET` | Secret token for webhook URL |
+| `WEBHOOK_SECRET` | Secret token for Authorization header |
 | `TEAMTAILOR_NOTE_USER_ID` | User ID for notes (optional, defaults to "1") |
 
 ## Webhook Endpoint
 
 ```
-POST /api/webhook/[token]?job_id=12345
+POST /api/webhook?job_id=12345
+Authorization: Bearer YOUR_SECRET
 ```
 
 ManyChat sends JSON with `tt_` prefixed fields:

@@ -246,17 +246,26 @@ export default function DocsPage() {
                   <li>
                     <strong>URL:</strong>{' '}
                     <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-800">
-                      https://thread-recruitment-integration.vercel.app/api/webhook/YOUR_SECRET?job_id=12345
+                      https://thread-recruitment-integration.vercel.app/api/webhook?job_id=12345
                     </code>
                   </li>
                   <li>
-                    <strong>Content-Type header:</strong> application/json
+                    <strong>Headers:</strong> Add the Authorization header for authentication
+                    <ul className="ml-4 mt-1 list-inside list-disc">
+                      <li><code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">Authorization</code>: <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">Bearer YOUR_SECRET</code></li>
+                    </ul>
                   </li>
                 </ul>
                 <p className="mt-2 text-sm text-zinc-500">
                   Replace <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">YOUR_SECRET</code> with your webhook secret and{' '}
                   <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">12345</code> with your TeamTailor job ID.
                 </p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/manychat_request_header.png"
+                  alt="ManyChat External Request header configuration showing Authorization header"
+                  className="mt-3 rounded-lg border border-zinc-200 dark:border-zinc-700"
+                />
               </Step>
 
               <Step number={3} title="Set Up the JSON Body">
@@ -551,7 +560,8 @@ export default function DocsPage() {
             </h3>
             <p className="mb-4">Here&apos;s a full example of what the webhook receives:</p>
             <CodeBlock>
-              {`POST https://thread-recruitment-integration.vercel.app/api/webhook/abc123?job_id=6913207
+              {`POST https://thread-recruitment-integration.vercel.app/api/webhook?job_id=6913207
+Authorization: Bearer YOUR_SECRET
 Content-Type: application/json
 
 {
@@ -584,7 +594,8 @@ Content-Type: application/json
               actual question IDs and custom fields:
             </p>
             <CodeBlock>
-              {`POST /api/webhook/[secret]?job_id=6998249
+              {`POST /api/webhook?job_id=6998249
+Authorization: Bearer YOUR_SECRET
 Content-Type: application/json
 
 {

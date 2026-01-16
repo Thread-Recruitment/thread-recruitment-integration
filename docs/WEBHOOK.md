@@ -3,10 +3,9 @@
 ## Endpoint
 
 ```
-POST /api/webhook/[token]?job_id=12345
+POST /api/webhook?job_id=12345
 ```
 
-- `[token]` - Must match `WEBHOOK_SECRET` environment variable
 - `job_id` - TeamTailor job ID (required query parameter)
 
 ## Request
@@ -14,7 +13,10 @@ POST /api/webhook/[token]?job_id=12345
 Headers:
 ```
 Content-Type: application/json
+Authorization: Bearer YOUR_SECRET
 ```
+
+The `Authorization` header must contain `Bearer ` followed by the value of the `WEBHOOK_SECRET` environment variable.
 
 Body (JSON):
 ```json

@@ -20,7 +20,7 @@ export default function Home() {
             Webhook Endpoint
           </h2>
           <code className="block rounded bg-zinc-100 px-4 py-2 text-sm text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
-            POST /api/webhook/[token]?job_id=123
+            POST /api/webhook?job_id=123
           </code>
         </div>
 

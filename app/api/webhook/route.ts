@@ -17,17 +17,16 @@ function errorResponse(
   return NextResponse.json({ error: message }, { status })
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
-) {
+export async function POST(request: NextRequest) {
   // Generate request ID for tracing
   const requestId = request.headers.get('x-request-id') || crypto.randomUUID()
-  const { token } = await params
 
-  // 1. Validate token
-  if (token !== process.env.WEBHOOK_SECRET) {
-    return errorResponse('Unauthorized', 401, { request_id: requestId, token_received: token })
+  // 1. Validate Authorization header
+  const authHeader = request.headers.get('authorization')
+  const expectedToken = `Bearer ${process.env.WEBHOOK_SECRET}`
+
+  if (!authHeader || authHeader !== expectedToken) {
+    return errorResponse('Unauthorized', 401, { request_id: requestId })
   }
 
   // 2. Rate limit by IP

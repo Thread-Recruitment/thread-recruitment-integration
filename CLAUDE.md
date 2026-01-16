@@ -32,7 +32,7 @@ Scripts import `getClient()` from `scripts/lib.ts` which handles dotenv loading 
 
 ### Webhook Flow
 
-1. **Endpoint**: `POST /api/webhook/[token]?job_id=12345` - token validated against `WEBHOOK_SECRET`
+1. **Endpoint**: `POST /api/webhook?job_id=12345` with `Authorization: Bearer TOKEN` header - validated against `WEBHOOK_SECRET`
 2. **Parse**: `lib/parse.ts` extracts `tt_` prefixed fields from ManyChat JSON
 3. **Sync**: `lib/sync.ts` orchestrates TeamTailor API calls in order:
    - Create/merge candidate (by email)
@@ -66,5 +66,5 @@ Uses JSON:API format with kebab-case attributes. API version header: `X-Api-Vers
 
 Required in `.env.local`:
 - `TEAMTAILOR_API_KEY` - TeamTailor API key
-- `WEBHOOK_SECRET` - Token for webhook URL path
+- `WEBHOOK_SECRET` - Token for Authorization header
 - `AXIOM_TOKEN`, `AXIOM_DATASET` - Logging

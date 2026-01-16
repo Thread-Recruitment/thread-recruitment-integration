@@ -6,9 +6,10 @@
 2. Set method to POST
 3. Set URL to your webhook endpoint:
    ```
-   https://your-domain.vercel.app/api/webhook/YOUR_SECRET?job_id=12345
+   https://your-domain.vercel.app/api/webhook?job_id=12345
    ```
-4. Set Content-Type header to `application/json`
+4. Add headers:
+   - `Authorization`: `Bearer YOUR_SECRET`
 5. Configure the JSON body
 
 ## JSON Body Template
