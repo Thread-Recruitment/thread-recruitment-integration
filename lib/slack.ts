@@ -5,6 +5,8 @@ const TEAMTAILOR_COMPANY_ID = process.env.TEAMTAILOR_COMPANY_ID || 'aw3alxwdbpk@
 function statusEmoji(status: string): string {
   switch (status) {
     case 'success':
+    case 'updated':
+    case 'already_exists':
       return ':white_check_mark:'
     case 'failed':
       return ':x:'
@@ -15,6 +17,10 @@ function statusEmoji(status: string): string {
     default:
       return ':grey_question:'
   }
+}
+
+function isSuccessStatus(status: string): boolean {
+  return status === 'success' || status === 'updated' || status === 'already_exists'
 }
 
 function buildCandidateUrl(candidateId: string): string {
@@ -59,8 +65,8 @@ export async function sendSlackNotification(
   const color = report.success ? '#36a64f' : '#dc3545'
 
   // Calculate summary
-  const answersSuccess = report.answers.filter((a) => a.status === 'success').length
-  const customFieldsSuccess = report.customFields.filter((f) => f.status === 'success').length
+  const answersSuccess = report.answers.filter((a) => isSuccessStatus(a.status)).length
+  const customFieldsSuccess = report.customFields.filter((f) => isSuccessStatus(f.status)).length
 
   const totalOps =
     2 + // candidate + job application
@@ -69,11 +75,11 @@ export async function sendSlackNotification(
     (report.notes !== null ? 1 : 0)
 
   const successOps =
-    (report.candidate === 'success' ? 1 : 0) +
-    (report.jobApplication === 'success' ? 1 : 0) +
+    (isSuccessStatus(report.candidate) ? 1 : 0) +
+    (isSuccessStatus(report.jobApplication) ? 1 : 0) +
     answersSuccess +
     customFieldsSuccess +
-    (report.notes === 'success' ? 1 : 0)
+    (report.notes !== null && isSuccessStatus(report.notes) ? 1 : 0)
 
   // Build status lines
   const statusLines = [
