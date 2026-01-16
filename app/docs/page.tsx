@@ -348,7 +348,7 @@ export default function DocsPage() {
               Slack Notification
             </h3>
             <p className="mb-3 text-zinc-600 dark:text-zinc-400">
-              If configured, you&apos;ll receive a Slack notification with a summary of the sync:
+              You&apos;ll receive a Slack notification with a summary of the sync. You can use this to review what fields passed and what failed (missing, debugging etc):
             </p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
