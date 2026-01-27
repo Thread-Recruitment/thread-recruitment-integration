@@ -36,7 +36,7 @@ export function parseManyChatFields(
     } else if (key === 'tt_last_name') {
       candidate.lastName = strValue
     } else if (key === 'tt_email') {
-      candidate.email = strValue
+      candidate.email = strValue.trim().replace(/\.+$/, '')
     } else if (key === 'tt_phone') {
       candidate.phone = strValue
     } else if (key === 'tt_tags') {

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { Section, Step, CodeBlock, Table, Troubleshoot } from '@/components/docs'
 
 const NAV_ITEMS = [
   { id: 'how-it-works', label: 'How It Works' },
@@ -634,92 +635,6 @@ Content-Type: application/json
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
-  return (
-    <section id={id} className="mb-12 scroll-mt-8">
-      <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">{title}</h2>
-      <div className="text-zinc-600 dark:text-zinc-400">{children}</div>
-    </section>
-  )
-}
-
-function Step({
-  number,
-  title,
-  children,
-}: {
-  number: number
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex gap-4">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
-        {number}
-      </div>
-      <div>
-        <h4 className="font-medium text-zinc-900 dark:text-zinc-100">{title}</h4>
-        <div className="mt-1 text-zinc-600 dark:text-zinc-400">{children}</div>
-      </div>
-    </div>
-  )
-}
-
-function CodeBlock({ children }: { children: string }) {
-  return (
-    <pre className="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm text-zinc-100 dark:bg-zinc-800">
-      <code>{children}</code>
-    </pre>
-  )
-}
-
-function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 dark:border-zinc-800">
-            {headers.map((header) => (
-              <th
-                key={header}
-                className="py-2 pr-4 font-medium text-zinc-900 dark:text-zinc-100"
-              >
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i} className="border-b border-zinc-100 dark:border-zinc-800/50">
-              {row.map((cell, j) => (
-                <td key={j} className="py-2 pr-4 text-zinc-600 dark:text-zinc-400">
-                  {j === 0 ? (
-                    <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-800">
-                      {cell}
-                    </code>
-                  ) : (
-                    cell
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function Troubleshoot({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-      <h4 className="font-medium text-zinc-900 dark:text-zinc-100">{title}</h4>
-      <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{children}</div>
     </div>
   )
 }

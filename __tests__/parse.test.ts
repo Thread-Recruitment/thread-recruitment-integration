@@ -94,4 +94,22 @@ describe('parseManyChatFields', () => {
     expect(result.candidate.tags).toBeUndefined()
     expect(result.notes).toBeUndefined()
   })
+
+  it('sanitizes email by trimming whitespace and trailing periods', () => {
+    expect(
+      parseManyChatFields({ tt_email: 'test@example.com.' }).candidate.email
+    ).toBe('test@example.com')
+
+    expect(
+      parseManyChatFields({ tt_email: 'test@example.com..' }).candidate.email
+    ).toBe('test@example.com')
+
+    expect(
+      parseManyChatFields({ tt_email: '  test@example.com  ' }).candidate.email
+    ).toBe('test@example.com')
+
+    expect(
+      parseManyChatFields({ tt_email: '  test@example.com. ' }).candidate.email
+    ).toBe('test@example.com')
+  })
 })
